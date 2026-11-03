@@ -75,6 +75,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-off
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
 fieldset{border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:var(--sh);padding:14px 16px 16px;margin:0}
 fieldset.full{grid-column:1/-1}
+.stack{display:flex;flex-direction:column;gap:16px}
+.f.f3{grid-template-columns:1fr 1fr 1fr}
 legend{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--acc);padding:0 6px}
 .f{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
 .f label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);font-weight:500}
@@ -84,13 +86,25 @@ legend{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.8
 .calc div:nth-child(odd){color:var(--muted)}
 .calc div:nth-child(even){font-family:var(--mono);text-align:right;font-weight:500}
 .hint{font-size:12px;color:var(--muted);margin-top:10px}
-.iso-row{display:grid;grid-template-columns:1fr 1.2fr auto;gap:6px;margin-bottom:6px}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:12px}
+.thumb{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--soft);border:1px solid var(--line);cursor:pointer}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .pdf{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:8px;text-align:center;font-size:12px;word-break:break-word;color:var(--muted)}
+.thumb .pdf b{font-size:26px;color:var(--err);margin-bottom:4px}
+.thumb .del{position:absolute;top:6px;right:6px;min-height:36px;min-width:36px;padding:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:0;font-size:15px}
+.thumb .del.armed{background:var(--err);border-radius:8px;padding:0 10px;width:auto}
+.addfile{display:inline-flex}
+.addfile span{display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer;font-weight:500}
+.addfile span:hover{border-color:var(--acc)}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:30;display:flex;align-items:center;justify-content:center}
+.viewer img{max-width:100%;max-height:100%;object-fit:contain}
+.viewer button{position:absolute;top:14px;right:14px;background:#fff;color:#000}
+fieldset > textarea{width:100%}
 .ein-head,.ein-row{display:grid;grid-template-columns:110px 1.3fr 1.2fr 1fr 1.4fr 44px;gap:6px;align-items:center}
 .ein-head{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:0 2px 4px}
 .ein-row{margin-bottom:6px}
 .ein-row input{font-family:var(--mono);font-size:14px}
 .x{padding:0;min-width:44px}
-.unklar input{border-color:var(--warn)}
 .ein-row input.bad{border-color:var(--warn);background:var(--warnbg)}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:15px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
 .toast.show{opacity:1}
@@ -121,7 +135,7 @@ legend{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.8
           <button id="btnImp">Sicherung laden</button>
           <button id="btnCsv">Alle als CSV (Excel)</button>
         </div>
-        <input type="file" id="fileImp" accept=".json,application/json" class="hidden">
+        <input type="file" id="fileImp" accept=".json,.zip,application/json,application/zip" multiple class="hidden">
       </div>
     </div>
     <div class="searchbox">
@@ -147,35 +161,41 @@ legend{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.8
     <div class="formtitle" id="formTitle"></div>
     <form id="frm" class="grid" autocomplete="off" onsubmit="return false">
       <fieldset>
-        <legend>Typenschild</legend>
+        <legend>Motor · Kenndaten</legend>
         <div class="f">
-          <label>Hersteller<input name="hersteller"></label>
+          <label>Firmen Name<input name="hersteller"></label>
           <label>Typ<input name="typ"></label>
           <label>Spannung [V]<input name="spannung" placeholder="230/400"></label>
           <label>Strom [A]<input name="strom" placeholder="6,9/4"></label>
-          <label>Leistung [kW]<input name="leistung" inputmode="decimal"></label>
-          <label>Drehzahl [1/min]<input name="drehzahl" inputmode="numeric"></label>
+          <label>Leistung [kW/PS]<input name="leistung" placeholder="1,5 kW"></label>
+          <label>Drehzahl [U/min]<input name="drehzahl" inputmode="numeric"></label>
+          <label>~ Nuten<input name="nuten" inputmode="numeric"></label>
+          <label>Schaltung<select name="schaltung"><option value="">–</option><option>Δ/Y</option><option>Y</option><option>Δ</option><option>YY/Y (Dahlander)</option><option>Sonstige</option></select></label>
           <label>Frequenz [Hz]<input name="frequenz" placeholder="50" inputmode="numeric"></label>
           <label>cos φ<input name="cosphi" inputmode="decimal"></label>
-          <label>Schaltung<select name="schaltung"><option value="">–</option><option>Δ/Y</option><option>Y</option><option>Δ</option><option>YY/Y (Dahlander)</option><option>Sonstige</option></select></label>
           <label>Baugröße / Bauform<input name="baugroesse"></label>
-          <label class="w">Sonstige Schildangaben<input name="schild"></label>
+          <label>Sonstige Schildangaben<input name="schild"></label>
         </div>
       </fieldset>
 
+      <div class="stack">
       <fieldset>
-        <legend>Blechpaket</legend>
-        <div class="f">
-          <label>Nutenzahl<input name="nuten" inputmode="numeric"></label>
-          <label>Paketlänge L [mm]<input name="paketL" inputmode="decimal"></label>
-          <label>Bohrung Ø [mm]<input name="bohrung" inputmode="decimal"></label>
-          <label>Außen Ø [mm]<input name="aussen" inputmode="decimal"></label>
-          <label class="w">Sonstige Paketmaße<input name="paketSonst"></label>
+        <legend>Abmessungen</legend>
+        <div class="f f3">
+          <label>Ausladung<input name="ausladung"></label>
+          <label>Länge<input name="paketL"></label>
+          <label>Durchmesser<input name="aussen"></label>
         </div>
       </fieldset>
+      <fieldset>
+        <legend>Berechnet</legend>
+        <div class="calc" id="calc"></div>
+        <div class="hint">Strangstrom: bei Doppelangabe (Δ/Y) der kleinere Wert, bei reinem Δ I/√3. Stromdichte = Strangstrom ÷ (Leiterquerschnitt × Zweige). Nur Kontrollwerte.</div>
+      </fieldset>
+      </div>
 
       <fieldset class="full">
-        <legend>Einsätze · Datum / Kunde / Serien-Nr.</legend>
+        <legend>Auftrags- &amp; Kundendaten · Einsätze</legend>
         <div class="ein-head"><div>Datum</div><div>Kunde</div><div>Serien-Nr.</div><div>Komm.-Nr.</div><div>Bemerkung</div><div></div></div>
         <div id="einList"></div>
         <button type="button" id="einAdd">+ Einsatz hinzufügen</button>
@@ -183,52 +203,53 @@ legend{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.8
       </fieldset>
 
       <fieldset>
-        <legend>Wicklung</legend>
+        <legend>Wicklungsdaten &amp; Drahtangaben</legend>
         <div class="f">
-          <label>Windungen / Spule<input name="wdg" inputmode="numeric"></label>
+          <label>Windungen<input name="wdg" inputmode="numeric"></label>
+          <label>Gewicht [kg]<input name="cuKg" inputmode="decimal"></label>
+          <label>Draht – Zahl<input name="drahtN" inputmode="numeric" placeholder="3"></label>
+          <label>Draht – Ø [mm]<input name="drahtD" placeholder="0,75" inputmode="decimal"></label>
           <label>Wicklungsart<select name="art"><option value="">–</option><option>Einschicht konzentrisch</option><option>Einschicht Gleichspulen</option><option>Zweischicht</option><option>Korbwicklung</option><option>Sonstige</option></select></label>
-          <label>Drähte parallel<input name="drahtN" inputmode="numeric" placeholder="3"></label>
-          <label>Draht Ø blank [mm]<input name="drahtD" placeholder="0,75" inputmode="decimal"></label>
-          <label>Parallele Zweige a<input name="zweige" inputmode="numeric" placeholder="1"></label>
           <label>Schritt / Spulenweite<input name="schritt" placeholder="z. B. 1–12"></label>
-          <label>Spulen je Gruppe<input name="spGruppe"></label>
+          <label>Parallele Zweige<input name="zweige" inputmode="numeric" placeholder="1"></label>
           <label>Isolierstoffklasse<select name="isokl"><option value="">–</option><option>B</option><option>F</option><option>H</option></select></label>
-          <label>Kupfergewicht [kg]<input name="cuKg" inputmode="decimal"></label>
-          <label>Drahtsorte / Lack<input name="drahtSorte" placeholder="z. B. Grad 2"></label>
         </div>
       </fieldset>
 
+      <div class="stack">
       <fieldset>
-        <legend>Berechnet</legend>
-        <div class="calc" id="calc"></div>
-        <div class="hint">Strangstrom: bei Doppelangabe (Δ/Y) der kleinere Wert, bei reinem Δ I/√3. Stromdichte = Strangstrom ÷ (Leiterquerschnitt × Zweige). Nur Kontrollwerte.</div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Wickelmaschine / Schablone</legend>
+        <legend>Wickelmaschine</legend>
         <div class="f">
-          <label>Maschine<input name="maschine" placeholder="Odimat 2100"></label>
-          <label>Schablonenmaß<input name="schablone"></label>
-          <label class="w">Einstellung / Positionen<input name="einstellung" placeholder="Gleichwelle 1,2,3,4"></label>
+          <label class="w">Maschine<input name="maschine" placeholder="Odimat 2100"></label>
+          <label>Abstand Backen<input name="schablone"></label>
+          <label>Code<input name="code"></label>
         </div>
       </fieldset>
 
       <fieldset>
-        <legend>Isolation / Bandage</legend>
-        <div id="isoList"></div>
-        <button type="button" id="isoAdd">+ Zeile</button>
-        <div class="f" style="margin-top:10px">
+        <legend>Zusatzangaben</legend>
+        <div class="f">
+          <label>Dach<input name="dach"></label>
+          <label>Holz<input name="holz"></label>
+          <label>Nuten-Isolation<input name="nutiso"></label>
+          <label>Zwischendächer<input name="zwischendach"></label>
           <label class="w">Bandage / Faden<input name="bandage"></label>
-          <label class="w">Tränkung / Harz<input name="traenkung"></label>
         </div>
+      </fieldset>
+      </div>
+
+
+
+      <fieldset class="full">
+        <legend>Zusatzbemerkungen / handschriftliche Vermerke</legend>
+        <textarea name="notizen" rows="3"></textarea>
       </fieldset>
 
       <fieldset class="full">
-        <legend>Notizen / unklar</legend>
-        <div class="f">
-          <label class="w unklar">Unklare Angaben (Bedeutung offen)<input name="unklar"></label>
-          <label class="w">Notizen<textarea name="notizen" rows="3"></textarea></label>
-        </div>
+        <legend>Fotos &amp; Dateien</legend>
+        <div class="thumbs" id="thumbs"></div>
+        <label class="addfile"><input type="file" id="fileAdd" accept="image/*,application/pdf" multiple class="hidden"><span>📷 Foto / PDF hinzufügen</span></label>
+        <div class="hint">Fotos werden auf max. 2000 px verkleinert. PDF bis 15 MB. Gespeichert wird sofort – auch ohne „Speichern“.</div>
       </fieldset>
     </form>
   </section>
@@ -236,14 +257,19 @@ legend{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.8
 <div class="toast" id="toast"></div>
 
 <script>
-const FIELDS=["hersteller","typ","spannung","strom","leistung","drehzahl","frequenz","cosphi","schaltung","baugroesse","schild",
-"nuten","paketL","bohrung","aussen","paketSonst",
-"wdg","art","drahtN","drahtD","zweige","schritt","spGruppe","isokl","cuKg","drahtSorte",
-"maschine","schablone","einstellung","bandage","traenkung","unklar","notizen"];
-const LABELS={hersteller:"Hersteller",typ:"Typ",spannung:"Spannung [V]",strom:"Strom [A]",leistung:"Leistung [kW]",drehzahl:"Drehzahl [1/min]",frequenz:"Frequenz [Hz]",cosphi:"cos φ",schaltung:"Schaltung",baugroesse:"Baugröße",schild:"Schild sonst.",
-nuten:"Nuten",paketL:"Paketlänge L [mm]",bohrung:"Bohrung Ø [mm]",aussen:"Außen Ø [mm]",paketSonst:"Paket sonst.",
-wdg:"Windungen/Spule",art:"Wicklungsart",drahtN:"Drähte parallel",drahtD:"Draht Ø [mm]",zweige:"Parallele Zweige",schritt:"Schritt",spGruppe:"Spulen je Gruppe",isokl:"Isolierklasse",cuKg:"Kupfer [kg]",drahtSorte:"Drahtsorte",
-maschine:"Wickelmaschine",schablone:"Schablone",einstellung:"Einstellung",bandage:"Bandage",traenkung:"Tränkung",unklar:"Unklar",notizen:"Notizen"};
+const FIELDS=["hersteller","typ","spannung","strom","leistung","drehzahl","nuten","schaltung","frequenz","cosphi","baugroesse","schild",
+"ausladung","paketL","aussen",
+"wdg","cuKg","drahtN","drahtD","art","schritt","zweige","isokl",
+"maschine","schablone","code","dach","holz","nutiso","zwischendach","bandage","notizen"];
+const LABELS={hersteller:"Firmen Name",typ:"Typ",spannung:"Spannung [V]",strom:"Strom [A]",leistung:"Leistung [kW/PS]",drehzahl:"Drehzahl [U/min]",nuten:"Nuten",schaltung:"Schaltung",frequenz:"Frequenz [Hz]",cosphi:"cos φ",baugroesse:"Baugröße",schild:"Schild sonst.",
+ausladung:"Ausladung",paketL:"Länge",aussen:"Durchmesser",
+wdg:"Windungen",cuKg:"Gewicht [kg]",drahtN:"Draht – Zahl",drahtD:"Draht – Ø [mm]",art:"Wicklungsart",schritt:"Schritt",zweige:"Parallele Zweige",isokl:"Isolierklasse",
+maschine:"Wickelmaschine",schablone:"Abstand Backen",code:"Code",dach:"Dach",holz:"Holz",nutiso:"Nuten-Isolation",zwischendach:"Zwischendächer",bandage:"Bandage",notizen:"Zusatzbemerkungen"};
+const SECTIONS=[["Motor · Kenndaten",["spannung","strom","leistung","drehzahl","nuten","schaltung","frequenz","cosphi","baugroesse","schild"]],
+["Abmessungen",["ausladung","paketL","aussen"]],
+["Wicklungsdaten & Drahtangaben",["wdg","cuKg","drahtN","drahtD","art","schritt","zweige","isokl"]],
+["Wickelmaschine",["maschine","schablone","code"]],
+["Zusatzangaben",["dach","holz","nutiso","zwischendach","bandage"]]];
 const EIN=["datum","kunde","sn","komm","bem"];
 const $=s=>document.querySelector(s);
 const frm=$("#frm");
@@ -289,13 +315,7 @@ function renderCalc(){
 }
 
 /* ---------- dynamic rows ---------- */
-function isoRow(b="",m=""){
-  const d=document.createElement("div");d.className="iso-row";
-  d.innerHTML=`<input placeholder="Bezeichnung (Nutiso, Deckschieber …)" value="${esc(b)}"><input placeholder="Maße / Material" value="${esc(m)}"><button type="button" class="x" title="Zeile entfernen">✕</button>`;
-  d.querySelector("button").onclick=()=>d.remove();
-  $("#isoList").appendChild(d);
-}
-$("#isoAdd").onclick=()=>isoRow();
+
 function einRow(e={}){
   const d=document.createElement("div");d.className="ein-row";
   const ph={datum:"TT.MM.JJ",kunde:"Kunde",sn:"Serien-Nr.",komm:"21"+String(new Date().getFullYear()).slice(2)+"xxxx",bem:"Bemerkung"};
@@ -305,41 +325,32 @@ function einRow(e={}){
   ki.addEventListener("input",()=>{ki.value=ki.value.replace(/\D/g,"").slice(0,8);chk()});chk();
   $("#einList").appendChild(d);return d;
 }
-function readEin(){return [...document.querySelectorAll("#einList .ein-row")].map(r=>{const o={};r.querySelectorAll("input").forEach(i=>o[i.dataset.k]=i.value.trim());return o}).filter(o=>EIN.some(k=>o[k]))}
+function readEin(){return [...document.querySelectorAll("#einList .ein-row")].map(r=>{const o={};r.querySelectorAll("input").forEach(i=>o[i.dataset.k]=i.value.trim());return o}).filter(o=>["kunde","sn","komm","bem"].some(k=>o[k]))}
 $("#einAdd").onclick=()=>{const l=readEin().slice(-1)[0]||{};const r=einRow({datum:today(),kunde:l.kunde||"",sn:l.sn||""});const k=r.querySelector('[data-k="komm"]');k.value="21"+String(new Date().getFullYear()).slice(2);k.dispatchEvent(new Event("input"));k.focus()};
 
 /* ---------- form io ---------- */
 function readForm(){
   const r={};FIELDS.forEach(k=>{const el=frm.elements[k];r[k]=el?el.value.trim():""});
   r.einsaetze=readEin();
-  r.isolation=[...document.querySelectorAll("#isoList .iso-row")].map(d=>{const i=d.querySelectorAll("input");return {bez:i[0].value.trim(),mass:i[1].value.trim()}}).filter(x=>x.bez||x.mass);
   return r;
 }
 function fillForm(r){
   FIELDS.forEach(k=>{const el=frm.elements[k];if(el)el.value=r[k]??""});
   $("#einList").innerHTML="";const e=einsaetze(r);(e.length?e:[{datum:today()}]).forEach(einRow);
-  $("#isoList").innerHTML="";(r.isolation||[]).forEach(x=>isoRow(x.bez,x.mass));if(!(r.isolation||[]).length)isoRow();
   $("#meta").textContent=r.updatedAt?("zuletzt "+new Date(r.updatedAt).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})):"neu";
   renderCalc();
 }
 frm.addEventListener("input",renderCalc);
 
 /* ---------- views ---------- */
-function showList(){$("#viewForm").classList.add("hidden");$("#viewList").classList.remove("hidden");current=null;renderList();window.scrollTo(0,0)}
+async function showList(){
+  if(current&&current.isNew){await deleteFilesOf(current.id);}
+  $("#viewForm").classList.add("hidden");$("#viewList").classList.remove("hidden");current=null;renderList();window.scrollTo(0,0)}
 function showForm(rec){
+  if(!rec.id){rec.id=newId();rec.isNew=true}
   current=rec;$("#viewList").classList.add("hidden");$("#viewForm").classList.remove("hidden");
-  $("#delConfirm").classList.remove("show");fillForm(rec.data);
-  $("#btnSave").disabled=!canWrite;$("#btnDel").disabled=!canWrite||!rec.id;window.scrollTo(0,0);
-}
-function renderChips(){
-  const cnt={};records.forEach(r=>{const h=(r.data.hersteller||"").trim();if(h)cnt[h]=(cnt[h]||0)+1});
-  const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0]);
-  const nU=records.filter(r=>r.data.unklar).length;
-  const chips=[["alle",`Alle · ${records.length}`]];if(nU)chips.push(["pruefen",`Zu prüfen · ${nU}`]);
-  top.forEach(h=>chips.push(["h:"+h,h]));
-  if(!chips.some(c=>c[0]===filter))filter="alle";
-  $("#chips").innerHTML=records.length?chips.map(([k,t])=>`<button class="chip${k===filter?" on":""}" data-k="${esc(k)}">${esc(t)}</button>`).join(""):"";
-  document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{filter=b.dataset.k;renderList()});
+  $("#delConfirm").classList.remove("show");fillForm(rec.data);renderThumbs();
+  $("#btnSave").disabled=!canWrite;$("#btnDel").disabled=!canWrite||rec.isNew;window.scrollTo(0,0);
 }
 function renderList(){
   const q=$("#q").value.trim().toLowerCase();
@@ -352,10 +363,10 @@ function renderList(){
   $("#listWrap").innerHTML=`<div class="cards">${view.map(r=>{const d=r.data,e=einsaetze(d),l=e[e.length-1]||{};
     return `<div class="card" data-id="${esc(r.id)}">
       <div class="top"><div><div class="mf">${esc(d.hersteller||"—")}</div><div class="typ">${esc(d.typ||"ohne Typ")}</div></div>
-      ${d.leistung?`<div class="kw">${esc(d.leistung)}<small> kW</small></div>`:""}</div>
+      ${d.leistung?`<div class="kw">${/^[\d.,\s]+$/.test(d.leistung)?esc(d.leistung.trim())+"<small> kW</small>":esc(d.leistung)}</div>`:""}</div>
       <div class="specs">${sp("U",d.spannung&&d.spannung+" V")}${sp("n",d.drehzahl)}${sp("Nut",d.nuten)}${sp("Wdg",d.wdg)}${sp("Draht",d.drahtD&&((d.drahtN||1)+"×"+d.drahtD))}</div>
       <div class="foot"><span class="last">${l.kunde||l.komm?esc([l.kunde,l.datum,l.komm].filter(Boolean).join(" · ")):"kein Einsatz"}</span>
-      <span>${d.unklar?'<span class="badge w">prüfen</span> ':""}${e.length?`<span class="badge n">${e.length}× Einsatz</span>`:""}</span></div></div>`}).join("")}</div>${!q&&total>view.length?`<div style="text-align:center;margin-top:16px"><button id="btnMore">Weitere ${Math.min(LIMIT,total-view.length)} anzeigen</button></div>`:""}`;
+      <span>${fileCounts[r.id]?`<span class="badge n">📷 ${fileCounts[r.id]}</span> `:""}${e.length?`<span class="badge n">${e.length}× Einsatz</span>`:""}</span></div></div>`}).join("")}</div>${!q&&total>view.length?`<div style="text-align:center;margin-top:16px"><button id="btnMore">Weitere ${Math.min(LIMIT,total-view.length)} anzeigen</button></div>`:""}`;
   const m=$("#btnMore");if(m)m.onclick=()=>{shown+=LIMIT;renderList()};
   document.querySelectorAll(".card").forEach(c=>c.onclick=()=>{const r=records.find(x=>x.id===c.dataset.id);if(r)showForm(r)});
 }
@@ -373,7 +384,7 @@ async function saveRecord(id,data,keepTime){
   const i=records.findIndex(r=>r.id===id);if(i>=0)records[i]={id,data};else records.push({id,data});
   lsSave();markDirty();
 }
-async function deleteRecord(id){records=records.filter(r=>r.id!==id);lsSave();markDirty();}
+async function deleteRecord(id){records=records.filter(r=>r.id!==id);lsSave();await deleteFilesOf(id);markDirty();}
 
 /* ---------- Sicherung ---------- */
 const META="wickeldaten.meta";
@@ -382,10 +393,12 @@ function setMeta(m){try{localStorage.setItem(META,JSON.stringify(Object.assign(m
 const isoDay=d=>{const x=new Date(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")};
 function markDirty(){const m=meta();setMeta({dirty:(m.dirty||0)+1});
   if(!m.last||isoDay(m.last)!==isoDay(Date.now()))backupNow(true); else updateStatus();}
-function backupNow(auto){
+async function backupNow(auto){
   const payload={app:"wickeldaten",format:1,erstellt:new Date().toISOString(),anzahl:records.length,records};
   download(`wickeldaten-backup-${isoDay(Date.now())}.json`,JSON.stringify(payload,null,1),"application/json");
-  setMeta({last:Date.now(),dirty:0});updateStatus();toast(auto?"Tagessicherung im Download-Ordner abgelegt":"Sicherung im Download-Ordner abgelegt");
+  let nf=0;try{nf=await backupPhotos()}catch(e){toast("Foto-Sicherung fehlgeschlagen")}
+  setMeta({last:Date.now(),dirty:0});updateStatus();
+  toast((auto?"Tagessicherung":"Sicherung")+" im Download-Ordner"+(nf?` (+ ${nf} neue Datei${nf===1?"":"en"} als ZIP)`:""));
 }
 function updateStatus(){
   const m=meta(),n=records.length;
@@ -398,7 +411,7 @@ function setWrite(w){canWrite=w;$("#btnNew").classList.toggle("hidden",!w)}
 $("#btnSave").onclick=async()=>{
   const data=readForm();
   if(!data.hersteller&&!data.typ){toast("Mindestens Hersteller oder Typ angeben");return}
-  const id=current.id||newId();$("#btnSave").disabled=true;
+  const id=current.id;$("#btnSave").disabled=true;
   try{await saveRecord(id,data);current={id,data};$("#btnDel").disabled=false;$("#meta").textContent="gespeichert "+new Date().toLocaleTimeString("de-DE",{timeStyle:"short"});if(meta().dirty)toast("Gespeichert")}
   catch(e){toast(e&&e.name==="QuotaExceededError"?"Gerätespeicher voll – Sicherung machen und melden":"Fehler beim Speichern: "+(e&&e.message||e))}
   $("#btnSave").disabled=!canWrite;
@@ -407,6 +420,120 @@ $("#btnDel").onclick=()=>$("#delConfirm").classList.add("show");
 $("#delNo").onclick=()=>$("#delConfirm").classList.remove("show");
 $("#delYes").onclick=async()=>{try{await deleteRecord(current.id);toast("Gelöscht");showList()}catch(e){toast("Löschen fehlgeschlagen")}};
 $("#btnDup").onclick=()=>{const d=readForm();d.einsaetze=[];showForm({id:null,data:d});toast("Kopie ohne Einsätze – noch nicht gespeichert")};
+
+
+/* ---------- Fotos & Dateien (IndexedDB) ---------- */
+let fileCounts={};
+let _idb=null;
+function idb(){if(_idb)return _idb;_idb=new Promise((res,rej)=>{const r=indexedDB.open("wickeldaten",1);
+  r.onupgradeneeded=()=>{const st=r.result.createObjectStore("files",{keyPath:"id"});st.createIndex("motor","motor")};
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});return _idb}
+async function tx(mode,fn){const d=await idb();return new Promise((res,rej)=>{const t=d.transaction("files",mode);const st=t.objectStore("files");let out;Promise.resolve(fn(st,v=>out=v));t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)})}
+const req2p=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+async function filesOf(motor){const d=await idb();return req2p(d.transaction("files").objectStore("files").index("motor").getAll(motor))}
+async function allFiles(){const d=await idb();return req2p(d.transaction("files").objectStore("files").getAll())}
+async function putFile(rec){await tx("readwrite",st=>st.put(rec))}
+async function delFile(id){await tx("readwrite",st=>st.delete(id))}
+async function deleteFilesOf(motor){try{const fs=await filesOf(motor);for(const f of fs)await delFile(f.id);delete fileCounts[motor]}catch(e){}}
+async function loadCounts(){try{const fs=await allFiles();fileCounts={};fs.forEach(f=>fileCounts[f.motor]=(fileCounts[f.motor]||0)+1)}catch(e){}}
+
+async function shrinkImage(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+    const M=2000,sc=Math.min(1,M/Math.max(img.naturalWidth,img.naturalHeight));
+    const c=document.createElement("canvas");c.width=Math.round(img.naturalWidth*sc);c.height=Math.round(img.naturalHeight*sc);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    return await new Promise(res=>c.toBlob(res,"image/jpeg",0.82));
+  }finally{URL.revokeObjectURL(url)}
+}
+$("#fileAdd").onchange=async e=>{
+  const files=[...e.target.files];e.target.value="";if(!files.length||!current)return;
+  let n=0;
+  for(const f of files){
+    try{
+      let blob=f,type=f.type,name=f.name||"datei";
+      if(type.startsWith("image/")){blob=await shrinkImage(f);type="image/jpeg";name=name.replace(/\.[^.]+$/,"")+".jpg"}
+      else if(type==="application/pdf"){if(f.size>15*1024*1024){toast(name+": größer als 15 MB");continue}}
+      else{toast(name+": nur Fotos und PDF");continue}
+      await putFile({id:"f"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),motor:current.id,name,type,created:Date.now(),backedUp:false,blob});n++;
+    }catch(err){toast("Datei konnte nicht gespeichert werden: "+(err&&err.name==="QuotaExceededError"?"Speicher voll":f.name))}
+  }
+  if(n){fileCounts[current.id]=(fileCounts[current.id]||0)+n;await renderThumbs();if(!current.isNew)markDirty();toast(n+" hinzugefügt")}
+};
+let thumbUrls=[];
+async function renderThumbs(){
+  thumbUrls.forEach(u=>URL.revokeObjectURL(u));thumbUrls=[];
+  const box=$("#thumbs");box.innerHTML="";if(!current)return;
+  let fs=[];try{fs=(await filesOf(current.id)).sort((a,b)=>a.created-b.created)}catch(e){box.innerHTML='<div class="hint">Dateispeicher nicht verfügbar.</div>';return}
+  for(const f of fs){
+    const u=URL.createObjectURL(f.blob);thumbUrls.push(u);
+    const d=document.createElement("div");d.className="thumb";
+    d.innerHTML=(f.type.startsWith("image/")?`<img src="${u}" alt="">`:`<div class="pdf"><b>PDF</b>${esc(f.name)}</div>`)+`<button type="button" class="del" title="Löschen">✕</button>`;
+    d.onclick=ev=>{if(ev.target.closest(".del"))return;
+      if(f.type.startsWith("image/")){const v=document.createElement("div");v.className="viewer";v.innerHTML=`<img src="${u}" alt=""><button>Schließen</button>`;v.onclick=()=>v.remove();document.body.appendChild(v)}
+      else{const a=document.createElement("a");a.href=u;a.target="_blank";a.rel="noopener";a.click()}};
+    const del=d.querySelector(".del");
+    del.onclick=async ev=>{ev.stopPropagation();
+      if(!del.classList.contains("armed")){del.classList.add("armed");del.textContent="Löschen?";setTimeout(()=>{del.classList.remove("armed");del.textContent="✕"},3000);return}
+      await delFile(f.id);fileCounts[current.id]=Math.max(0,(fileCounts[current.id]||1)-1);renderThumbs();if(!current.isNew)markDirty()};
+    box.appendChild(d);
+  }
+  if(!fs.length)box.innerHTML='<div class="hint" style="grid-column:1/-1;margin:0">Noch keine Fotos – z. B. Typenschild, alter Wickelzettel, Schaltbild.</div>';
+}
+
+/* ---------- ZIP (ohne Kompression) für Foto-Sicherung ---------- */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function makeZip(entries){ // [{name, data:Uint8Array}]
+  const enc=new TextEncoder(),parts=[],cd=[];let off=0;
+  const d=new Date(),tm=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1),dt=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
+  for(const e of entries){
+    const nm=enc.encode(e.name),crc=crc32(e.data),sz=e.data.length;
+    const h=new DataView(new ArrayBuffer(30));
+    [[0,0x04034b50,4],[4,20,2],[6,0x0800,2],[8,0,2],[10,tm,2],[12,dt,2],[14,crc,4],[18,sz,4],[22,sz,4],[26,nm.length,2],[28,0,2]].forEach(([o,v,l])=>l===4?h.setUint32(o,v,true):h.setUint16(o,v,true));
+    parts.push(new Uint8Array(h.buffer),nm,e.data);
+    const c=new DataView(new ArrayBuffer(46));
+    [[0,0x02014b50,4],[4,20,2],[6,20,2],[8,0x0800,2],[10,0,2],[12,tm,2],[14,dt,2],[16,crc,4],[20,sz,4],[24,sz,4],[28,nm.length,2],[30,0,2],[32,0,2],[34,0,2],[36,0,2],[38,0,4],[42,off,4]].forEach(([o,v,l])=>l===4?c.setUint32(o,v,true):c.setUint16(o,v,true));
+    cd.push(new Uint8Array(c.buffer),nm);
+    off+=30+nm.length+sz;
+  }
+  const cdSize=cd.reduce((a,b)=>a+b.length,0),end=new DataView(new ArrayBuffer(22));
+  [[0,0x06054b50,4],[4,0,2],[6,0,2],[8,entries.length,2],[10,entries.length,2],[12,cdSize,4],[16,off,4],[20,0,2]].forEach(([o,v,l])=>l===4?end.setUint32(o,v,true):end.setUint16(o,v,true));
+  return new Blob([...parts,...cd,new Uint8Array(end.buffer)],{type:"application/zip"});
+}
+function readZip(buf){
+  const v=new DataView(buf),dec=new TextDecoder(),out=[];let p=0;
+  while(p+30<=buf.byteLength&&v.getUint32(p,true)===0x04034b50){
+    const method=v.getUint16(p+8,true),sz=v.getUint32(p+18,true),nl=v.getUint16(p+26,true),xl=v.getUint16(p+28,true);
+    const name=dec.decode(new Uint8Array(buf,p+30,nl)),start=p+30+nl+xl;
+    if(method===0)out.push({name,data:new Uint8Array(buf.slice(start,start+sz))});
+    p=start+sz;
+  }
+  return out;
+}
+async function backupPhotos(){
+  const fs=(await allFiles()).filter(f=>!f.backedUp);if(!fs.length)return 0;
+  const entries=[];
+  for(const f of fs){
+    const safe=f.name.replace(/[^\w.\-äöüÄÖÜß]+/g,"_");
+    entries.push({name:`${f.id}__${f.motor}__${f.created}__${safe}`,data:new Uint8Array(await f.blob.arrayBuffer())});
+  }
+  const now=new Date(),stamp=isoDay(now)+"-"+String(now.getHours()).padStart(2,"0")+String(now.getMinutes()).padStart(2,"0");
+  const url=URL.createObjectURL(makeZip(entries));const a=document.createElement("a");a.href=url;a.download=`wickeldaten-fotos-${stamp}.zip`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+  for(const f of fs){f.backedUp=true;await putFile(f)}
+  return fs.length;
+}
+async function restorePhotos(file){
+  const ents=readZip(await file.arrayBuffer());let n=0;
+  for(const e of ents){
+    const m=e.name.match(/^(f[\w]+)__([\w\-.~:@+]+)__(\d+)__(.+)$/);if(!m)continue;
+    const type=/\.pdf$/i.test(m[4])?"application/pdf":"image/jpeg";
+    await putFile({id:m[1],motor:m[2],created:+m[3],name:m[4],type,backedUp:true,blob:new Blob([e.data],{type})});n++;
+  }
+  await loadCounts();return n;
+}
+async function pendingPhotos(){try{return (await allFiles()).filter(f=>!f.backedUp).length}catch(e){return 0}}
 
 /* ---------- export ---------- */
 function download(filename,data,mime){
@@ -417,23 +544,24 @@ const offer=(f,d,m)=>{download(f,d,m);toast("Im Download-Ordner abgelegt")};
 const einTxt=e=>[e.datum,e.kunde,e.sn&&"SN "+e.sn,e.komm&&"Komm. "+e.komm,e.bem].filter(Boolean).join(", ");
 function csvCell(v){v=String(v??"");return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 $("#btnCsv").onclick=()=>{
-  const head=[...FIELDS.map(k=>LABELS[k]),"Einsätze","Isolation"];
-  const rows=records.map(r=>[...FIELDS.map(k=>r.data[k]),einsaetze(r.data).map(einTxt).join(" | "),(r.data.isolation||[]).map(x=>x.bez+": "+x.mass).join(" | ")]);
+  const head=[...FIELDS.map(k=>LABELS[k]),"Einsätze"];
+  const rows=records.map(r=>[...FIELDS.map(k=>r.data[k]),einsaetze(r.data).map(einTxt).join(" | ")]);
   offer("wickeldaten.csv","﻿"+[head,...rows].map(r=>r.map(csvCell).join(";")).join("\r\n"),"text/csv");
 };
 $("#btnJson").onclick=()=>backupNow(false);$("#btnBackup").onclick=()=>backupNow(false);
 $("#btnImp").onclick=()=>$("#fileImp").click();
 $("#fileImp").onchange=async e=>{
-  const f=e.target.files[0];if(!f)return;
+  for(const f of e.target.files){
+  if(/\.zip$/i.test(f.name)){try{const n=await restorePhotos(f);toast(n+" Fotos/Dateien geladen");renderList()}catch(err){toast("ZIP konnte nicht gelesen werden")}continue}
   try{
     const j=JSON.parse(await f.text());const arr=Array.isArray(j)?j:j&&Array.isArray(j.records)?j.records:null;if(!arr)throw 0;let n=0;
     for(const r of arr){if(r&&r.data&&typeof r.data==="object"){const d={};FIELDS.forEach(k=>d[k]=String(r.data[k]??""));
       d.einsaetze=einsaetze(r.data).map(x=>{const o={};EIN.forEach(k=>o[k]=String(x[k]||""));return o});
-      d.isolation=Array.isArray(r.data.isolation)?r.data.isolation.map(x=>({bez:String(x.bez||""),mass:String(x.mass||"")})):[];
       if(r.data.updatedAt)d.updatedAt=+r.data.updatedAt||0;
       const id=String(r.id||newId());const i=records.findIndex(x=>x.id===id);if(i>=0)records[i]={id,data:d};else records.push({id,data:d});n++}}
     lsSave();setMeta({dirty:0});updateStatus();renderList();toast(n+" Motoren geladen");
   }catch(err){toast("Import fehlgeschlagen – keine gültige Backup-Datei")}
+  }
   e.target.value="";
 };
 
@@ -442,14 +570,10 @@ function sheetText(d){
   const g=(t,ks)=>{const x=ks.map(L).filter(Boolean);return x.length?`== ${t} ==\n`+x.join("\n"):null};
   const e=d.einsaetze||[];
   return [`WICKELDATEN – ${d.hersteller||""} ${d.typ||""}`.trim(),
-    g("Typenschild",["spannung","strom","leistung","drehzahl","frequenz","cosphi","schaltung","baugroesse","schild"]),
     e.length?"== Einsätze ==\n"+e.map(einTxt).join("\n"):null,
-    g("Blechpaket",["nuten","paketL","bohrung","aussen","paketSonst"]),
-    g("Wicklung",["wdg","art","drahtN","drahtD","zweige","schritt","spGruppe","isokl","cuKg","drahtSorte"]),
-    g("Wickelmaschine",["maschine","schablone","einstellung"]),
-    (d.isolation||[]).length||d.bandage?`== Isolation ==\n`+(d.isolation||[]).map(x=>`${x.bez}: ${x.mass}`).concat(d.bandage?["Bandage: "+d.bandage]:[]).join("\n"):null,
+    ...SECTIONS.map(([t,ks])=>g(t,ks)),
     `== Berechnet ==\n${isNaN(c.poles)?"":c.poles+"-polig, "}q=${fmt(c.q)}, A=${fmt(c.A,3)} mm², J=${fmt(c.J)} A/mm²`,
-    d.unklar?"UNKLAR: "+d.unklar:null,d.notizen?"Notizen: "+d.notizen:null].filter(Boolean).join("\n\n");
+    d.notizen?"Zusatzbemerkungen: "+d.notizen:null].filter(Boolean).join("\n\n");
 }
 $("#btnCopy").onclick=async()=>{try{await navigator.clipboard.writeText(sheetText(readForm()));toast("Kopiert")}catch(e){toast("Kopieren nicht möglich")}};
 $("#btnSheet").onclick=()=>{
@@ -462,15 +586,10 @@ $("#btnSheet").onclick=()=>{
 table{border-collapse:collapse;width:100%}th,td{border:1px solid #bbb;padding:3px 6px;text-align:left;font-size:11pt}th{width:42%;background:#f2f2f2;font-weight:normal}table.e th{width:auto}.cols{columns:2;column-gap:10mm}.cols>div{break-inside:avoid}.u{border:1px solid #c80;padding:4px;margin-top:8px}</style></head><body>
 <h1>Wickeldaten – ${esc(d.hersteller)} ${esc(d.typ)}</h1>
 <div class="cols">
-<div>${sec("Typenschild",["spannung","strom","leistung","drehzahl","frequenz","cosphi","schaltung","baugroesse","schild"])}</div>
-<div>${sec("Blechpaket",["nuten","paketL","bohrung","aussen","paketSonst"])}</div>
-<div>${sec("Wicklung",["wdg","art","drahtN","drahtD","zweige","schritt","spGruppe","isokl","cuKg","drahtSorte"])}</div>
-<div>${sec("Wickelmaschine / Schablone",["maschine","schablone","einstellung"])}</div>
-<div>${(d.isolation||[]).length||d.bandage||d.traenkung?`<h2>Isolation / Bandage</h2><table>${(d.isolation||[]).map(x=>`<tr><th>${esc(x.bez)}</th><td>${esc(x.mass)}</td></tr>`).join("")}${tr("bandage")}${tr("traenkung")}</table>`:""}</div>
+${SECTIONS.map(([t,ks])=>`<div>${sec(t,ks)}</div>`).join("")}
 <div><h2>Berechnet</h2><table><tr><th>Polzahl</th><td>${isNaN(c.poles)?"–":c.poles}</td></tr><tr><th>q</th><td>${fmt(c.q)}</td></tr><tr><th>Leiterquerschnitt</th><td>${fmt(c.A,3)} mm²</td></tr><tr><th>Stromdichte</th><td>${fmt(c.J)} A/mm²</td></tr></table></div>
 </div>${ein}
-${d.unklar?`<div class="u"><b>Unklar:</b> ${esc(d.unklar)}</div>`:""}
-${d.notizen?`<h2>Notizen</h2><p>${esc(d.notizen).replace(/\n/g,"<br>")}</p>`:""}
+${d.notizen?`<h2>Zusatzbemerkungen</h2><p>${esc(d.notizen).replace(/\n/g,"<br>")}</p>`:""}
 <p style="font-size:9pt;color:#666;margin-top:14px">Erstellt ${today()}</p></body></html>`;
   offer(("wickeldaten_"+(d.hersteller+"_"+d.typ).replace(/[^\w\-]+/g,"_")+".html").replace(/_+/g,"_"),html,"text/html");
 };
@@ -482,7 +601,7 @@ let _t="hell";try{_t=localStorage.getItem("wickeldaten.theme")||"hell"}catch(e){
 $("#btnTheme").onclick=()=>{const i=THEMES.findIndex(x=>x[0]===document.documentElement.dataset.theme);applyTheme(THEMES[(i+1)%3][0])};
 
 /* ---------- init ---------- */
-records=lsLoad();renderList();updateStatus();
+records=lsLoad();renderList();updateStatus();loadCounts().then(renderList);
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>

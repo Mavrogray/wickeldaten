@@ -32,17 +32,19 @@ Wenn mehrere Kollegen eintragen, dann alle am selben Gerät.
 ## 3. Sicherung
 
 - **Automatisch:** Beim ersten Speichern eines Tages legt die App `wickeldaten-backup-JJJJ-MM-TT.json` im Download-Ordner ab.
+- **Fotos/PDFs** kommen bei jeder Sicherung als `wickeldaten-fotos-JJJJ-MM-TT-HHMM.zip` dazu – nur die seit der letzten Sicherung **neuen** Dateien. Alle ZIPs zusammen ergeben den kompletten Foto-Bestand, also keine davon löschen.
 - **Manuell:** Gibt es danach weitere Änderungen, erscheint oben der Knopf **„⬇ Sichern“**. Außerdem: Export → „Sicherung speichern“.
 - Unter der Überschrift stehen der Zeitpunkt der letzten Sicherung und die Zahl der Änderungen seitdem.
 - Mehrere Sicherungen am selben Tag legt Chrome als `…(1).json`, `…(2).json` ab. Die neueste ist die mit der höchsten Nummer.
 
 ### Syncthing (läuft schon fürs Stundenbuch)
 
-Im Download-Ordner auf dem Tablet ist bereits ein Ignorier-Muster eingetragen. Es braucht **eine zusätzliche Zeile** vor dem `*`:
+Im Download-Ordner auf dem Tablet ist bereits ein Ignorier-Muster eingetragen. Es braucht **zwei zusätzliche Zeilen** vor dem `*`:
 
 ```
 !/stundenbuch-backup-*.json
 !/wickeldaten-backup-*.json
+!/wickeldaten-fotos-*.zip
 *
 ```
 
@@ -51,7 +53,7 @@ Danach kommen die Wickeldaten-Sicherungen im selben Container auf betzendorf an 
 
 ### Wiederherstellen
 
-Neueste `wickeldaten-backup-….json` aufs Tablet kopieren → App → Export → „Sicherung laden“.
+Neueste `wickeldaten-backup-….json` **und alle** `wickeldaten-fotos-….zip` aufs Tablet kopieren → App → Export → „Sicherung laden“ → alle Dateien auf einmal auswählen.
 Vorhandene Motoren mit gleicher Kennung werden überschrieben, alle anderen bleiben erhalten.
 
 Die JSON-Sicherung aus der Testversion auf claude.ai lässt sich genauso laden.
