@@ -20,7 +20,7 @@ html[data-theme="dunkel"]{--bg:#141618;--card:#1e2124;--ink:#ebe8e3;--muted:#9aa
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--sans)}
-main{max-width:1200px;margin:0 auto;padding:20px 24px 100px}
+main{max-width:1200px;margin:0 auto;padding:20px 24px 130px}
 button{font:inherit;font-weight:500;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 16px;min-height:44px;border-radius:10px;cursor:pointer;touch-action:manipulation}
 button:hover{border-color:var(--acc)}
 button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
@@ -66,7 +66,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-off
 .badge.w{color:var(--warn);background:var(--warnbg)}
 .badge.n{color:var(--acc);background:var(--accbg)}
 .empty{padding:50px 20px;text-align:center;color:var(--muted);background:var(--card);border:1px dashed var(--line);border-radius:var(--r)}
-.fab{position:fixed;right:24px;bottom:24px;min-height:58px;padding:0 22px;border-radius:16px;font-size:16px;font-weight:600;box-shadow:0 6px 20px rgba(184,88,26,.35);z-index:8}
+.fab{position:fixed;right:24px;bottom:52px;min-height:58px;padding:0 22px;border-radius:16px;font-size:16px;font-weight:600;box-shadow:0 6px 20px rgba(184,88,26,.35);z-index:8}
 
 /* ---- Formular ---- */
 .formbar{position:sticky;top:0;z-index:6;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 0;margin-bottom:6px}
@@ -127,7 +127,14 @@ fieldset > textarea{width:100%}
 .confirm.show{display:inline-flex}
 .meta{font:12px var(--mono);color:var(--muted);margin-left:auto}
 .hidden{display:none!important}
-.ver{text-align:center;font:12px var(--mono);color:var(--muted);margin-top:28px;opacity:.8}
+.ver{position:fixed;left:0;right:0;bottom:0;z-index:7;text-align:center;font:12px var(--mono);color:var(--muted);background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-top:1px solid var(--line);padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:var(--card);border-radius:16px;padding:20px;width:min(360px,100%);box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:4px}
+#pinInput{font:22px var(--mono);letter-spacing:6px;text-align:center}
+.wrow{display:grid;grid-template-columns:90px 1fr 44px;gap:6px;align-items:center}
+.wrow input{font-family:var(--mono);font-size:15px}
+.wrow input[data-k="bem"]{font-family:var(--sans)}
 @media (max-width:760px){
   main{padding:14px 14px 100px}.hero h1{font-size:24px}
   .ein-head{display:none}
@@ -144,19 +151,13 @@ fieldset > textarea{width:100%}
       <div><h1>Wickeldaten<span>.</span></h1><div class="sub" id="status"></div></div>
       <div class="tools">
         <button id="btnBackup" class="hidden" title="Ungesicherte Änderungen sichern">⬇ Sichern</button>
-        <button id="btnTheme" title="Darstellung umschalten">☀ Hell</button>
-        <button id="btnMenu" aria-label="Export">⋯ Export</button>
-        <div class="menu" id="menu">
-          <button id="btnJson">Sicherung speichern</button>
-          <button id="btnImp">Sicherung laden</button>
-          <button id="btnCsv">Alle als CSV (Excel)</button>
-        </div>
+        <button id="btnSettings" title="Einstellungen">⚙ Einstellungen</button>
         <input type="file" id="fileImp" accept=".json,.zip,application/json,application/zip" multiple class="hidden">
       </div>
     </div>
     <div class="searchbox">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="Hersteller, Typ, kW, Kunde, Serien-Nr. …">
+      <input id="q" type="search" placeholder="z. B.  acec 1,5kw  ·  48nut  ·  1475u  ·  Kunde  ·  Serien-Nr.">
     </div>
     <div class="sub" id="hits" style="margin:-4px 0 12px 4px"></div>
     <div id="listWrap"></div>
@@ -219,12 +220,16 @@ fieldset > textarea{width:100%}
       <fieldset>
         <legend>Wicklungsdaten &amp; Drahtangaben</legend>
         <div class="f">
-          <label>Windungen<input name="wdg" inputmode="numeric"></label>
+          <div class="w drahtbox">
+            <div class="dlab">Windungen</div>
+            <div id="wdgList"></div>
+            <div class="drow-btns"><button type="button" id="wdgAdd">+ Windungszahl</button></div>
+          </div>
           <label>Gewicht [kg]<input name="cuKg" inputmode="decimal"></label>
           <div class="w drahtbox">
             <div class="dlab">Draht – Anzahl × Ø [mm]</div>
             <div id="drahtList"></div>
-            <div class="drow-btns"><button type="button" id="drahtAdd">+ Draht</button><button type="button" id="drahtSplit">Draht aufteilen …</button></div>
+            <div class="drow-btns"><button type="button" id="drahtAdd">+ Draht</button><button type="button" id="drahtSplit">Draht umrechnen …</button></div>
             <div id="splitBox" class="splitbox hidden"></div>
             <div class="hint" id="drahtSum"></div>
           </div>
@@ -237,11 +242,12 @@ fieldset > textarea{width:100%}
 
       <div class="stack">
       <fieldset>
-        <legend>Wickelmaschine</legend>
+        <legend>Wickelmaschine (Odimat 2100)</legend>
         <div class="f">
-          <label class="w">Maschine<input name="maschine" placeholder="Odimat 2100"></label>
+
           <label>Abstand Backen<input name="schablone"></label>
-          <label>Code<input name="code"></label>
+          <label>Backen Größe<input name="backenGr"></label>
+          <label>Backen Kammern<input name="backenKa"></label>
         </div>
       </fieldset>
 
@@ -252,7 +258,6 @@ fieldset > textarea{width:100%}
           <label>Holz<input name="holz"></label>
           <label>Nuten-Isolation<input name="nutiso"></label>
           <label>Zwischendächer<input name="zwischendach"></label>
-          <label class="w">Bandage / Faden<input name="bandage"></label>
         </div>
       </fieldset>
       </div>
@@ -272,25 +277,66 @@ fieldset > textarea{width:100%}
       </fieldset>
     </form>
   </section>
-  <footer class="ver" id="ver"></footer>
+  <section id="viewSettings" class="hidden">
+    <div class="formbar"><button id="btnSetBack">← Übersicht</button></div>
+    <div class="formtitle">Einstellungen</div>
+    <div class="grid">
+      <fieldset>
+        <legend>PIN</legend>
+        <div id="pinState" class="sub" style="margin-bottom:10px"></div>
+        <div class="f">
+          <label>Neue PIN (4–8 Ziffern)<input id="pinNew1" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></label>
+          <label>Wiederholen<input id="pinNew2" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></label>
+        </div>
+        <div class="drow-btns" style="margin-top:10px"><button class="pri" id="pinSave" type="button">PIN speichern</button></div>
+        <div class="hint">Die PIN schützt: Motoren löschen, Fotos löschen, Einsätze entfernen, Sicherung laden. Nach der Eingabe bleibt sie 5 Minuten gültig.<br>
+        <b>PIN gut notieren.</b> Vergessen → nur über Zurücksetzen der App (Chrome → Website-Daten löschen) und Laden der letzten Sicherung.<br>
+        Bedienschutz gegen Versehen – keine echte Sicherheit.</div>
+      </fieldset>
+      <fieldset>
+        <legend>Sicherung</legend>
+        <div class="sub" id="setStatus" style="margin-bottom:10px"></div>
+        <div class="drow-btns">
+          <button id="btnJson" type="button">Sicherung speichern</button>
+          <button id="btnImp" type="button">Sicherung laden 🔒</button>
+          <button id="btnCsv" type="button">Alle als CSV (Excel)</button>
+        </div>
+        <div class="hint">Sicherung laden: JSON und alle Foto-ZIPs auf einmal auswählen.</div>
+      </fieldset>
+      <fieldset>
+        <legend>Darstellung</legend>
+        <div class="drow-btns"><button id="btnTheme" type="button">☀ Hell</button></div>
+      </fieldset>
+    </div>
+  </section>
 </main>
+<footer class="ver" id="ver"></footer>
+<div class="modal hidden" id="pinModal">
+  <div class="modal-box">
+    <div class="modal-title" id="pinTitle">PIN eingeben</div>
+    <div class="sub" id="pinWhy" style="margin-bottom:10px"></div>
+    <input id="pinInput" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="PIN">
+    <div class="sub warn hidden" id="pinErr" style="margin-top:6px">Falsche PIN</div>
+    <div class="drow-btns" style="margin-top:12px;justify-content:flex-end"><button id="pinCancel" type="button">Abbrechen</button><button class="pri" id="pinOk" type="button">OK</button></div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="1.2"; // bei jedem Update erhöhen – auch in sw.js
+const APP_VERSION="1.3"; // bei jedem Update erhöhen – auch in sw.js
 const FIELDS=["hersteller","typ","spannung","strom","leistung","drehzahl","nuten","schaltung","frequenz","schild",
 "ausladung","paketL","aussen",
-"wdg","cuKg","art","schritt","beschaltung","isokl",
-"maschine","schablone","code","dach","holz","nutiso","zwischendach","bandage","notizen"];
-const LABELS={hersteller:"Firmen Name",typ:"Typ",spannung:"Spannung [V]",strom:"Strom [A]",leistung:"Leistung [kW/PS]",drehzahl:"Drehzahl [U/min]",nuten:"Nuten",schaltung:"Schaltung",frequenz:"Frequenz [Hz]",cosphi:"cos φ",baugroesse:"Baugröße",schild:"Schild sonst.",
+"cuKg","art","schritt","beschaltung","isokl",
+"schablone","backenGr","backenKa","dach","holz","nutiso","zwischendach","notizen"];
+const LABELS={wdgs:"Windungen",backenGr:"Backen Größe",backenKa:"Backen Kammern",hersteller:"Firmen Name",typ:"Typ",spannung:"Spannung [V]",strom:"Strom [A]",leistung:"Leistung [kW/PS]",drehzahl:"Drehzahl [U/min]",nuten:"Nuten",schaltung:"Schaltung",frequenz:"Frequenz [Hz]",cosphi:"cos φ",baugroesse:"Baugröße",schild:"Schild sonst.",
 ausladung:"Ausladung",paketL:"Länge",aussen:"Durchmesser",
 wdg:"Windungen",cuKg:"Gewicht [kg]",drahte:"Draht",art:"Wicklungsart",schritt:"Schritt",beschaltung:"Beschaltung",isokl:"Isolierklasse",
 maschine:"Wickelmaschine",schablone:"Abstand Backen",code:"Code",dach:"Dach",holz:"Holz",nutiso:"Nuten-Isolation",zwischendach:"Zwischendächer",bandage:"Bandage",notizen:"Zusatzbemerkungen"};
 const SECTIONS=[["Motor · Kenndaten",["spannung","strom","leistung","drehzahl","nuten","schaltung","frequenz","schild"]],
 ["Abmessungen",["ausladung","paketL","aussen"]],
-["Wicklungsdaten & Drahtangaben",["wdg","cuKg","drahte","art","schritt","beschaltung","isokl"]],
-["Wickelmaschine",["maschine","schablone","code"]],
-["Zusatzangaben",["dach","holz","nutiso","zwischendach","bandage"]]];
+["Wicklungsdaten & Drahtangaben",["wdgs","cuKg","drahte","art","schritt","beschaltung","isokl"]],
+["Wickelmaschine (Odimat 2100)",["schablone","backenGr","backenKa"]],
+["Zusatzangaben",["dach","holz","nutiso","zwischendach"]]];
 const EIN=["datum","kunde","sn","bem"];
 /* Drahttabelle: Abmessung von Drähten bei Verwendung mehrerer Parallelleiter – [1 Draht, 2 Drähte, 3 Drähte, Querschnitt mm²] */
 const DRAHT_TAB=[["0,20","0,14","0,11–0,12","0,031"],["0,212","0,15","0,12","0,035"],["0,224","0,16","0,13","0,039"],["0,236","0,16–0,17","0,13–0,14","0,044"],
@@ -324,6 +370,8 @@ function drahte(d){
   if(d.drahtD)return [{n:d.drahtN||"1",d:d.drahtD}];
   return [];
 }
+function wdgs(d){if(Array.isArray(d.wdgs))return d.wdgs;if(d.wdg)return [{w:d.wdg,bem:""}];return []}
+const wdgTxt=a=>{a=(a||[]).filter(x=>x.w);return a.some(x=>x.bem)?a.map(x=>x.w+(x.bem?" ("+x.bem+")":"")).join(" / "):a.map(x=>x.w).join("/")};
 const drahtTxt=a=>(a||[]).filter(x=>x.d).map(x=>(x.n||1)+"×"+x.d).join(" + ");
 function einsaetze(d){
   if(Array.isArray(d.einsaetze))return d.einsaetze;
@@ -348,7 +396,7 @@ function renderCalc(){
     ["Nuten je Pol",fmt(c.proPol,2)],["q (Nuten je Pol u. Strang)",fmt(c.q,2)],["Leiterquerschnitt",fmt(c.A,3)+" mm²"],
     ["Strangstrom",fmt(c.Istr,2)+" A"],["Stromdichte",fmt(c.J,2)+" A/mm²"]];
   $("#calc").innerHTML=rows.map(([a,b])=>`<div>${a}</div><div>${b}</div>`).join("");
-  $("#formTitle").innerHTML=`${esc((r.hersteller+" "+r.typ).trim()||"Neuer Motor")}<small>${esc([r.leistung&&r.leistung+" kW",r.drehzahl&&r.drehzahl+" 1/min",r.nuten&&r.nuten+" Nuten"].filter(Boolean).join(" · "))}</small>`;
+  $("#formTitle").innerHTML=`${esc((r.hersteller+" "+r.typ).trim()||"Neuer Motor")}<small>${esc([r.leistung&&(/^[\d.,\s]+$/.test(r.leistung)?r.leistung.trim()+" kW":r.leistung),r.drehzahl&&r.drehzahl+" 1/min",r.nuten&&r.nuten+" Nuten"].filter(Boolean).join(" · "))}</small>`;
 }
 
 /* ---------- dynamic rows ---------- */
@@ -357,11 +405,25 @@ function einRow(e={}){
   const d=document.createElement("div");d.className="ein-row";
   const ph={datum:"TT.MM.JJ",kunde:"Kunde",sn:"Serien-Nr.",bem:"Bemerkung"};
   d.innerHTML=EIN.map(k=>`<input data-k="${k}" placeholder="${ph[k]}" value="${esc(e[k]||"")}">`).join("")+`<button type="button" class="x" title="Zeile entfernen">✕</button>`;
-  d.querySelector("button").onclick=()=>{d.remove()};
+  d.querySelector("button").onclick=async()=>{
+    const has=[...d.querySelectorAll("input")].some(i=>i.dataset.k!=="datum"&&i.value.trim());
+    if(has&&!(await requirePin("Einsatz entfernen")))return;
+    d.remove()};
   $("#einList").appendChild(d);return d;
 }
 function readEin(){return [...document.querySelectorAll("#einList .ein-row")].map(r=>{const o={};r.querySelectorAll("input").forEach(i=>o[i.dataset.k]=i.value.trim());return o}).filter(o=>["kunde","sn","bem"].some(k=>o[k]))}
 $("#einAdd").onclick=()=>{const l=readEin().slice(-1)[0]||{};const r=einRow({datum:today(),kunde:l.kunde||"",sn:l.sn||""});r.querySelector('[data-k="kunde"]').focus()};
+
+/* ---------- Windungen ---------- */
+function wdgRow(x={}){
+  const d=document.createElement("div");d.className="wrow";
+  d.innerHTML=`<input data-k="w" inputmode="numeric" placeholder="22" value="${esc(x.w||"")}"><input data-k="bem" placeholder="wofür (optional), z. B. innen / Spule 2" value="${esc(x.bem||"")}"><button type="button" class="x" title="Entfernen">✕</button>`;
+  d.querySelector("button").onclick=()=>{d.remove();if(!document.querySelector("#wdgList .wrow"))wdgRow()};
+  $("#wdgList").appendChild(d);return d;
+}
+function readWdg(){return [...document.querySelectorAll("#wdgList .wrow")].map(r=>({w:r.querySelector('[data-k="w"]').value.trim(),bem:r.querySelector('[data-k="bem"]').value.trim()})).filter(x=>x.w)}
+function fillWdg(a){$("#wdgList").innerHTML="";(a.length?a:[{}]).forEach(wdgRow)}
+$("#wdgAdd").onclick=()=>wdgRow().querySelector('[data-k="w"]').focus();
 
 /* ---------- Drähte ---------- */
 function drahtRow(x={}){
@@ -384,24 +446,43 @@ function lookup(d){
 function renderSplit(){
   const box=$("#splitBox"),rows=readDraht();
   const src=rows.length===1?rows[0]:null;
-  let html="";
-  if(!src){html=`<div>Zum Aufteilen genau <b>eine</b> Drahtzeile eintragen (z. B. 1 × 1,00).</div>`}
-  else{
-    const d=num(src.d),n=num(src.n)||1,i=lookup(d);
-    const opt=(k,v)=>`<button type="button" data-k="${k}" data-v="${v}">${n*k} × ${v}</button>`;
-    if(i>=0){
-      const r=DRAHT_TAB[i];
-      html=`<div>${n} × ${esc(src.d)} mm (${r[3]} mm² je Draht) ersetzen durch:</div><div class="opts">${vals(r[1]).map(v=>opt(2,v)).join("")}${vals(r[2]).map(v=>opt(3,v)).join("")}</div>`;
+  const f2=x=>x.toFixed(2).replace(".",",");
+  let html="",hi=-1;
+  /* Aufteilen */
+  if(src){
+    const d=num(src.d),n=num(src.n)||1,i=lookup(d);hi=i;
+    const opt=(k,v)=>`<button type="button" data-act="split" data-k="${k}" data-v="${v}">${n*k} × ${v}</button>`;
+    if(i>=0){const r=DRAHT_TAB[i];
+      html+=`<div><b>Aufteilen:</b> ${n} × ${esc(src.d)} mm (${r[3]} mm² je Draht) ersetzen durch:</div><div class="opts">${vals(r[1]).map(v=>opt(2,v)).join("")}${vals(r[2]).map(v=>opt(3,v)).join("")}</div>`;
     }else if(d>0){
-      const c=k=>(d/Math.sqrt(k)).toFixed(2).replace(".",",");
-      html=`<div>${esc(src.d)} mm steht nicht in der Tabelle – <b>berechnet</b> (gleicher Querschnitt):</div><div class="opts">${opt(2,c(2))}${opt(3,c(3))}${opt(4,c(4))}</div><div class="hint" style="margin:0">Auf Normdurchmesser runden.</div>`;
-    }else html=`<div>Durchmesser eintragen.</div>`;
+      html+=`<div><b>Aufteilen:</b> ${esc(src.d)} mm steht nicht in der Tabelle – berechnet (gleicher Querschnitt):</div><div class="opts">${opt(2,f2(d/Math.SQRT2))}${opt(3,f2(d/Math.sqrt(3)))}${opt(4,f2(d/2))}</div>`;
+    }
   }
-  const hi=src?lookup(num(src.d)):-1;
+  /* Zusammenfassen */
+  const total=rows.reduce((s,x)=>s+(num(x.n)||1),0);
+  const A=rows.reduce((s,x)=>{const dd=num(x.d);return dd>0?s+(num(x.n)||1)*Math.PI/4*dd*dd:s},0);
+  if(total>1&&A>0){
+    const jopt=(v,t)=>`<button type="button" data-act="join" data-v="${v}">1 × ${v}${t?` <small>${t}</small>`:""}</button>`;
+    let exact=-1;
+    if(src&&[2,3].includes(num(src.n))){const col=num(src.n)===2?1:2;exact=DRAHT_TAB.findIndex(r=>vals(r[col]).some(v=>Math.abs(num(v)-num(src.d))<0.0005))}
+    let opts="";
+    if(exact>=0){opts=jopt(DRAHT_TAB[exact][0],"laut Tabelle");if(hi<0)hi=exact}
+    else{
+      const areas=DRAHT_TAB.map(r=>num(r[3]));let lo=-1,up=-1;
+      areas.forEach((a,i)=>{if(a<=A)lo=i;if(a>=A&&up<0)up=i});
+      if(lo>=0)opts+=jopt(DRAHT_TAB[lo][0],DRAHT_TAB[lo][3]+" mm²");
+      if(up>=0&&up!==lo)opts+=jopt(DRAHT_TAB[up][0],DRAHT_TAB[up][3]+" mm²");
+      if(hi<0)hi=up>=0?up:lo;
+    }
+    html+=`<div style="margin-top:6px"><b>Zusammenfassen:</b> ${total} Drähte = ${A.toFixed(3).replace(".",",")} mm² → ein Draht (rechnerisch Ø ${f2(Math.sqrt(4*A/Math.PI))} mm):</div><div class="opts">${opts}</div>`;
+  }
+  if(!html)html=`<div>Draht eintragen (z. B. 1 × 1,00 zum Aufteilen oder 2 × 0,70 zum Zusammenfassen).</div>`;
   html+=`<div class="tbl"><table><tr><th>1 Draht</th><th>2 Drähte</th><th>3 Drähte</th><th>mm²</th></tr>${DRAHT_TAB.map((r,i)=>`<tr${i===hi?' class="hit"':""}>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</table></div>`;
   box.innerHTML=html;
   box.querySelectorAll(".opts button").forEach(b=>b.onclick=()=>{
-    const n=num(src.n)||1;fillDraht([{n:String(n*+b.dataset.k),d:b.dataset.v}]);box.classList.add("hidden");renderCalc();toast("Draht aufgeteilt: "+n*+b.dataset.k+" × "+b.dataset.v)});
+    if(b.dataset.act==="split"){const n=num(src.n)||1;fillDraht([{n:String(n*+b.dataset.k),d:b.dataset.v}]);toast("Aufgeteilt: "+n*+b.dataset.k+" × "+b.dataset.v)}
+    else{fillDraht([{n:"1",d:b.dataset.v}]);toast("Zusammengefasst: 1 × "+b.dataset.v)}
+    box.classList.add("hidden");renderCalc()});
   if(hi>=0)setTimeout(()=>{const t=box.querySelector("tr.hit");if(t)t.scrollIntoView({block:"nearest"})},0);
 }
 $("#drahtSplit").onclick=()=>{const b=$("#splitBox");b.classList.toggle("hidden");if(!b.classList.contains("hidden"))renderSplit()};
@@ -409,12 +490,12 @@ $("#drahtSplit").onclick=()=>{const b=$("#splitBox");b.classList.toggle("hidden"
 /* ---------- form io ---------- */
 function readForm(){
   const r={};FIELDS.forEach(k=>{const el=frm.elements[k];r[k]=el?el.value.trim():""});
-  r.einsaetze=readEin();r.drahte=readDraht();
+  r.einsaetze=readEin();r.drahte=readDraht();r.wdgs=readWdg();
   return r;
 }
 function fillForm(r){
   FIELDS.forEach(k=>{const el=frm.elements[k];if(el)el.value=r[k]??""});
-  fillDraht(drahte(r));$("#splitBox").classList.add("hidden");
+  fillDraht(drahte(r));fillWdg(wdgs(r));$("#splitBox").classList.add("hidden");
   $("#einList").innerHTML="";const e=einsaetze(r);(e.length?e:[{datum:today()}]).forEach(einRow);
   $("#meta").textContent=r.updatedAt?("zuletzt "+new Date(r.updatedAt).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})):"neu";
   renderCalc();
@@ -424,16 +505,33 @@ frm.addEventListener("input",renderCalc);
 /* ---------- views ---------- */
 async function showList(){
   if(current&&current.isNew){await deleteFilesOf(current.id);}
-  $("#viewForm").classList.add("hidden");$("#viewList").classList.remove("hidden");current=null;renderList();window.scrollTo(0,0)}
+  $("#viewForm").classList.add("hidden");$("#viewSettings").classList.add("hidden");$("#viewList").classList.remove("hidden");current=null;renderList();window.scrollTo(0,0)}
 function showForm(rec){
   if(!rec.id){rec.id=newId();rec.isNew=true}
   current=rec;$("#viewList").classList.add("hidden");$("#viewForm").classList.remove("hidden");
   $("#delConfirm").classList.remove("show");fillForm(rec.data);renderThumbs();
   $("#btnSave").disabled=!canWrite;$("#btnDel").disabled=!canWrite||rec.isNew;window.scrollTo(0,0);
 }
+const normS=x=>String(x??"").toLowerCase().replace(/(\d)\.(\d)/g,"$1,$2");
+function searchTokens(q){
+  return normS(q).replace(/(\d)\s+(kw|ps|nuten|nut|upm|u\/min|u)\b/g,"$1$2").split(/\s+/).filter(Boolean);
+}
+function hay(d){return normS([...FIELDS.map(k=>d[k]),drahtTxt(drahte(d)),wdgTxt(wdgs(d)),...einsaetze(d).map(e=>EIN.map(k=>e[k]).join(" "))].join(" | "))}
+function matchAll(d,toks){
+  const h=hay(d);
+  return toks.every(t=>{
+    const m=t.match(/^(\d+(?:,\d+)?)(kw|ps|nuten|nut|upm|u\/min|u)$/);
+    if(m){const v=num(m[1]),u=m[2];
+      if(u==="kw"||u==="ps"){const L=normS(d.leistung);if(num(L)!==v)return false;return u==="ps"?/ps/.test(L):!/ps/.test(L)}
+      if(u.startsWith("nut"))return num(d.nuten)===v;
+      return num(d.drehzahl)===v;}
+    return h.includes(t);
+  });
+}
 function renderList(){
   const q=$("#q").value.trim().toLowerCase();
-  const list=records.filter(r=>!q||JSON.stringify(r.data).toLowerCase().includes(q)).sort((a,b)=>(b.data.updatedAt||0)-(a.data.updatedAt||0));
+  const toks=searchTokens(q);
+  const list=records.filter(r=>!toks.length||matchAll(r.data,toks)).sort((a,b)=>(b.data.updatedAt||0)-(a.data.updatedAt||0));
   const total=list.length, view=q?list:list.slice(0,shown);
   $("#hits").textContent=!records.length?"":q?`${total} von ${records.length} Motoren`:(total>view.length?`Zuletzt bearbeitet · ${view.length} von ${total} – Rest über die Suche`:"");
   if(!records.length){$("#listWrap").innerHTML=`<div class="empty">Noch keine Motoren erfasst.<br>Unten rechts „+ Neuer Motor“.</div>`;return}
@@ -443,7 +541,7 @@ function renderList(){
     return `<div class="card" data-id="${esc(r.id)}">
       <div class="top"><div><div class="mf">${esc(d.hersteller||"—")}</div><div class="typ">${esc(d.typ||"ohne Typ")}</div></div>
       ${d.leistung?`<div class="kw">${/^[\d.,\s]+$/.test(d.leistung)?esc(d.leistung.trim())+"<small> kW</small>":esc(d.leistung)}</div>`:""}</div>
-      <div class="specs">${sp("U",d.spannung&&d.spannung+" V")}${sp("n",d.drehzahl)}${sp("Nut",d.nuten)}${sp("Wdg",d.wdg)}${sp("Draht",drahtTxt(drahte(d)))}</div>
+      <div class="specs">${sp("U",d.spannung&&d.spannung+" V")}${sp("n",d.drehzahl)}${sp("Nut",d.nuten)}${sp("Wdg",wdgs(d).filter(x=>x.w).map(x=>x.w).join("/"))}${sp("Draht",drahtTxt(drahte(d)))}</div>
       <div class="foot"><span class="last">${l.kunde?esc([l.kunde,l.datum].filter(Boolean).join(" · ")):"kein Einsatz"}</span>
       <span>${fileCounts[r.id]?`<span class="badge n">📷 ${fileCounts[r.id]}</span> `:""}${e.length?`<span class="badge n">${e.length}× Einsatz</span>`:""}</span></div></div>`}).join("")}</div>${!q&&total>view.length?`<div style="text-align:center;margin-top:16px"><button id="btnMore">Weitere ${Math.min(LIMIT,total-view.length)} anzeigen</button></div>`:""}`;
   const m=$("#btnMore");if(m)m.onclick=()=>{shown+=LIMIT;renderList()};
@@ -452,8 +550,9 @@ function renderList(){
 $("#q").addEventListener("input",()=>{shown=LIMIT;renderList()});
 $("#btnNew").onclick=()=>showForm({id:null,data:{frequenz:"50"}});
 $("#btnBack").onclick=showList;
-$("#btnMenu").onclick=e=>{e.stopPropagation();$("#menu").classList.toggle("show")};
-document.addEventListener("click",()=>$("#menu").classList.remove("show"));
+$("#btnSettings").onclick=()=>{if(current&&current.isNew)deleteFilesOf(current.id);current=null;
+  ["#viewList","#viewForm"].forEach(x=>$(x).classList.add("hidden"));$("#viewSettings").classList.remove("hidden");renderPinState();updateStatus();window.scrollTo(0,0)};
+$("#btnSetBack").onclick=()=>{$("#viewSettings").classList.add("hidden");showList()};
 
 /* ---------- storage ---------- */
 function lsLoad(){try{return JSON.parse(localStorage.getItem(LS)||"[]")}catch(e){return []}}
@@ -484,6 +583,7 @@ function updateStatus(){
   const last=m.last?new Date(m.last).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}):"noch nie";
   status(`${n} Motor${n===1?"":"en"} · letzte Sicherung: ${last}${m.dirty?` · ${m.dirty} Änderung${m.dirty===1?"":"en"} seitdem`:""}`,!m.last||m.dirty>0);
   $("#btnBackup").classList.toggle("hidden",!(m.dirty>0)||!n);
+  const ss=$("#setStatus");if(ss)ss.textContent=$("#status").textContent;
 }
 function setWrite(w){canWrite=w;$("#btnNew").classList.toggle("hidden",!w)}
 
@@ -495,7 +595,7 @@ $("#btnSave").onclick=async()=>{
   catch(e){toast(e&&e.name==="QuotaExceededError"?"Gerätespeicher voll – Sicherung machen und melden":"Fehler beim Speichern: "+(e&&e.message||e))}
   $("#btnSave").disabled=!canWrite;
 };
-$("#btnDel").onclick=()=>$("#delConfirm").classList.add("show");
+$("#btnDel").onclick=async()=>{if(await requirePin("Motor löschen"))$("#delConfirm").classList.add("show")};
 $("#delNo").onclick=()=>$("#delConfirm").classList.remove("show");
 $("#delYes").onclick=async()=>{try{await deleteRecord(current.id);toast("Gelöscht");showList()}catch(e){toast("Löschen fehlgeschlagen")}};
 $("#btnDup").onclick=()=>{const d=readForm();d.einsaetze=[];showForm({id:null,data:d});toast("Kopie ohne Einsätze – noch nicht gespeichert")};
@@ -555,6 +655,7 @@ async function renderThumbs(){
     const del=d.querySelector(".del");
     del.onclick=async ev=>{ev.stopPropagation();
       if(!del.classList.contains("armed")){del.classList.add("armed");del.textContent="Löschen?";setTimeout(()=>{del.classList.remove("armed");del.textContent="✕"},3000);return}
+      if(!current.isNew&&!(await requirePin("Foto löschen")))return;
       await delFile(f.id);fileCounts[current.id]=Math.max(0,(fileCounts[current.id]||1)-1);renderThumbs();if(!current.isNew)markDirty()};
     box.appendChild(d);
   }
@@ -614,6 +715,50 @@ async function restorePhotos(file){
 }
 async function pendingPhotos(){try{return (await allFiles()).filter(f=>!f.backedUp).length}catch(e){return 0}}
 
+
+/* ---------- PIN (eine PIN für Löschen + Sicherung laden) ---------- */
+const PINKEY="wickeldaten.pin";let pinUntil=0;
+function pinRec(){try{return JSON.parse(localStorage.getItem(PINKEY)||"null")}catch(e){return null}}
+async function hashPin(pin,salt){
+  const txt=salt+":"+pin;
+  if(window.crypto&&crypto.subtle){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(txt));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+  let h=2166136261;for(const c of txt){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0}return "f"+h.toString(16);
+}
+async function checkPin(p){const r=pinRec();return !!r&&(await hashPin(p,r.salt))===r.hash}
+function askPin(title,why){
+  return new Promise(res=>{
+    const m=$("#pinModal"),inp=$("#pinInput");$("#pinTitle").textContent=title;$("#pinWhy").textContent=why||"";$("#pinErr").classList.add("hidden");inp.value="";
+    m.classList.remove("hidden");setTimeout(()=>inp.focus(),50);
+    const done=v=>{m.classList.add("hidden");$("#pinOk").onclick=$("#pinCancel").onclick=inp.onkeydown=null;res(v)};
+    $("#pinCancel").onclick=()=>done(null);
+    $("#pinOk").onclick=async()=>{if(await checkPin(inp.value)){done(inp.value)}else{$("#pinErr").classList.remove("hidden");inp.value="";inp.focus()}};
+    inp.onkeydown=e=>{if(e.key==="Enter")$("#pinOk").click();if(e.key==="Escape")done(null)};
+  });
+}
+async function requirePin(what,optional){
+  if(!pinRec()){
+    if(optional)return true;
+    toast("Zum Löschen zuerst unter ⚙ Einstellungen eine PIN vergeben");return false;
+  }
+  if(Date.now()<pinUntil)return true;
+  const p=await askPin("PIN eingeben",what);if(p===null)return false;
+  pinUntil=Date.now()+5*60*1000;return true;
+}
+function renderPinState(){
+  const r=pinRec();
+  $("#pinState").textContent=r?"PIN ist gesetzt (seit "+new Date(r.set).toLocaleDateString("de-DE")+"). Zum Ändern zuerst die alte PIN eingeben.":"Noch keine PIN vergeben – Löschen ist gesperrt, bis eine PIN gesetzt ist.";
+  $("#pinSave").textContent=r?"PIN ändern":"PIN speichern";
+}
+$("#pinSave").onclick=async()=>{
+  const a=$("#pinNew1").value.trim(),b=$("#pinNew2").value.trim();
+  if(!/^\d{4,8}$/.test(a)){toast("PIN: 4 bis 8 Ziffern");return}
+  if(a!==b){toast("Die beiden PINs sind nicht gleich");return}
+  if(pinRec()){const old=await askPin("Alte PIN","PIN ändern");if(old===null)return}
+  const salt=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  localStorage.setItem(PINKEY,JSON.stringify({salt,hash:await hashPin(a,salt),set:Date.now()}));
+  $("#pinNew1").value=$("#pinNew2").value="";pinUntil=0;renderPinState();toast("PIN gespeichert – gut notieren!");
+};
+
 /* ---------- export ---------- */
 function download(filename,data,mime){
   const url=URL.createObjectURL(new Blob([data],{type:mime}));const a=document.createElement("a");
@@ -621,7 +766,7 @@ function download(filename,data,mime){
 }
 const offer=(f,d,m)=>{download(f,d,m);toast("Im Download-Ordner abgelegt")};
 const einTxt=e=>[e.datum,e.kunde,e.sn&&"SN "+e.sn,e.bem].filter(Boolean).join(", ");
-const val=(d,k)=>k==="drahte"?drahtTxt(drahte(d)):(d[k]??"");
+const val=(d,k)=>k==="drahte"?drahtTxt(drahte(d)):k==="wdgs"?wdgTxt(wdgs(d)):(d[k]??"");
 function csvCell(v){v=String(v??"");return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 $("#btnCsv").onclick=()=>{
   const head=[...FIELDS.map(k=>LABELS[k]),"Draht","Einsätze"];
@@ -629,7 +774,7 @@ $("#btnCsv").onclick=()=>{
   offer("wickeldaten.csv","﻿"+[head,...rows].map(r=>r.map(csvCell).join(";")).join("\r\n"),"text/csv");
 };
 $("#btnJson").onclick=()=>backupNow(false);$("#btnBackup").onclick=()=>backupNow(false);
-$("#btnImp").onclick=()=>$("#fileImp").click();
+$("#btnImp").onclick=async()=>{if(await requirePin("Sicherung laden",true))$("#fileImp").click()};
 $("#fileImp").onchange=async e=>{
   for(const f of e.target.files){
   if(/\.zip$/i.test(f.name)){try{const n=await restorePhotos(f);toast(n+" Fotos/Dateien geladen");renderList()}catch(err){toast("ZIP konnte nicht gelesen werden")}continue}
@@ -638,6 +783,7 @@ $("#fileImp").onchange=async e=>{
     for(const r of arr){if(r&&r.data&&typeof r.data==="object"){const d={};FIELDS.forEach(k=>d[k]=String(r.data[k]??""));
       d.einsaetze=einsaetze(r.data).map(x=>{const o={};EIN.forEach(k=>o[k]=String(x[k]||""));return o});
       d.drahte=drahte(r.data).map(x=>({n:String(x.n||""),d:String(x.d||"")}));
+      d.wdgs=wdgs(r.data).map(x=>({w:String(x.w||""),bem:String(x.bem||"")}));
       if(r.data.updatedAt)d.updatedAt=+r.data.updatedAt||0;
       const id=String(r.id||newId());const i=records.findIndex(x=>x.id===id);if(i>=0)records[i]={id,data:d};else records.push({id,data:d});n++}}
     lsSave();setMeta({dirty:0});updateStatus();renderList();toast(n+" Motoren geladen");
@@ -682,7 +828,7 @@ let _t="hell";try{_t=localStorage.getItem("wickeldaten.theme")||"hell"}catch(e){
 $("#btnTheme").onclick=()=>{const i=THEMES.findIndex(x=>x[0]===document.documentElement.dataset.theme);applyTheme(THEMES[(i+1)%3][0])};
 
 /* ---------- init ---------- */
-$("#ver").textContent="Version "+APP_VERSION;
+$("#ver").textContent="Wickeldaten v"+APP_VERSION;
 records=lsLoad();renderList();updateStatus();loadCounts().then(renderList);
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
