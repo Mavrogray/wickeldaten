@@ -76,11 +76,26 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-off
 fieldset{border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:var(--sh);padding:14px 16px 16px;margin:0}
 fieldset.full{grid-column:1/-1}
 .stack{display:flex;flex-direction:column;gap:16px}
+.drahtbox{display:flex;flex-direction:column;gap:6px}
+.dlab{font-size:12px;color:var(--muted);font-weight:500}
+.drow{display:grid;grid-template-columns:70px 18px 1fr 44px;gap:6px;align-items:center}
+.drow span{text-align:center;color:var(--muted)}
+.drow input{font-family:var(--mono);font-size:15px}
+.drow-btns{display:flex;gap:6px;flex-wrap:wrap}
+.splitbox{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
+.splitbox .opts{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.splitbox .opts button{font-family:var(--mono)}
+.splitbox table{border-collapse:collapse;width:100%;font:13px var(--mono);margin-top:8px}
+.splitbox th,.splitbox td{padding:3px 6px;border-bottom:1px solid var(--line);text-align:left}
+.splitbox th{font:600 11px var(--sans);color:var(--muted);text-transform:uppercase}
+.splitbox tr.hit td{background:var(--accbg);font-weight:600}
+.splitbox .tbl{max-height:260px;overflow:auto;margin-top:6px}
 .f.f3{grid-template-columns:1fr 1fr 1fr}
 legend{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--acc);padding:0 6px}
 .f{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
 .f label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);font-weight:500}
-.f label.w{grid-column:1/-1}
+.f label.w,.f .w{grid-column:1/-1}
+.splitbox td{white-space:nowrap}
 .f input,.f select{font-family:var(--mono);font-size:15px}
 .calc{display:grid;grid-template-columns:1fr auto;gap:6px 14px;font-size:15px}
 .calc div:nth-child(odd){color:var(--muted)}
@@ -100,7 +115,7 @@ legend{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.8
 .viewer img{max-width:100%;max-height:100%;object-fit:contain}
 .viewer button{position:absolute;top:14px;right:14px;background:#fff;color:#000}
 fieldset > textarea{width:100%}
-.ein-head,.ein-row{display:grid;grid-template-columns:110px 1.3fr 1.2fr 1fr 1.4fr 44px;gap:6px;align-items:center}
+.ein-head,.ein-row{display:grid;grid-template-columns:110px 1.4fr 1.2fr 1.6fr 44px;gap:6px;align-items:center}
 .ein-head{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:0 2px 4px}
 .ein-row{margin-bottom:6px}
 .ein-row input{font-family:var(--mono);font-size:14px}
@@ -112,6 +127,7 @@ fieldset > textarea{width:100%}
 .confirm.show{display:inline-flex}
 .meta{font:12px var(--mono);color:var(--muted);margin-left:auto}
 .hidden{display:none!important}
+.ver{text-align:center;font:12px var(--mono);color:var(--muted);margin-top:28px;opacity:.8}
 @media (max-width:760px){
   main{padding:14px 14px 100px}.hero h1{font-size:24px}
   .ein-head{display:none}
@@ -140,7 +156,7 @@ fieldset > textarea{width:100%}
     </div>
     <div class="searchbox">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="Hersteller, Typ, kW, Kunde, Serien- oder Komm.-Nr. …">
+      <input id="q" type="search" placeholder="Hersteller, Typ, kW, Kunde, Serien-Nr. …">
     </div>
     <div class="sub" id="hits" style="margin:-4px 0 12px 4px"></div>
     <div id="listWrap"></div>
@@ -172,8 +188,6 @@ fieldset > textarea{width:100%}
           <label>~ Nuten<input name="nuten" inputmode="numeric"></label>
           <label>Schaltung<select name="schaltung"><option value="">–</option><option>Δ/Y</option><option>Y</option><option>Δ</option><option>YY/Y (Dahlander)</option><option>Sonstige</option></select></label>
           <label>Frequenz [Hz]<input name="frequenz" placeholder="50" inputmode="numeric"></label>
-          <label>cos φ<input name="cosphi" inputmode="decimal"></label>
-          <label>Baugröße / Bauform<input name="baugroesse"></label>
           <label>Sonstige Schildangaben<input name="schild"></label>
         </div>
       </fieldset>
@@ -190,16 +204,16 @@ fieldset > textarea{width:100%}
       <fieldset>
         <legend>Berechnet</legend>
         <div class="calc" id="calc"></div>
-        <div class="hint">Strangstrom: bei Doppelangabe (Δ/Y) der kleinere Wert, bei reinem Δ I/√3. Stromdichte = Strangstrom ÷ (Leiterquerschnitt × Zweige). Nur Kontrollwerte.</div>
+        <div class="hint">Strangstrom: bei Doppelangabe (Δ/Y) der kleinere Wert, bei reinem Δ I/√3. Stromdichte = Strangstrom ÷ (Leiterquerschnitt × Zweige); Beschaltung „Parallel“ wird mit 2 Zweigen gerechnet. Nur Kontrollwerte.</div>
       </fieldset>
       </div>
 
       <fieldset class="full">
-        <legend>Auftrags- &amp; Kundendaten · Einsätze</legend>
-        <div class="ein-head"><div>Datum</div><div>Kunde</div><div>Serien-Nr.</div><div>Komm.-Nr.</div><div>Bemerkung</div><div></div></div>
+        <legend>Kundendaten · Einsätze</legend>
+        <div class="ein-head"><div>Datum</div><div>Kunde</div><div>Serien-Nr.</div><div>Bemerkung</div><div></div></div>
         <div id="einList"></div>
         <button type="button" id="einAdd">+ Einsatz hinzufügen</button>
-        <div class="hint">Neue Zeile übernimmt Kunde und Serien-Nr. der letzten Zeile („— " —“). Komm.-Nr. wie im Stundenbuch (8-stellig, z. B. 21260003 = Abt. 21, Jahr 26, Auftrag 0003) – Abteilung und Jahr sind vorbelegt.</div>
+        <div class="hint">Neue Zeile übernimmt Kunde und Serien-Nr. der letzten Zeile („— " —“).</div>
       </fieldset>
 
       <fieldset>
@@ -207,11 +221,16 @@ fieldset > textarea{width:100%}
         <div class="f">
           <label>Windungen<input name="wdg" inputmode="numeric"></label>
           <label>Gewicht [kg]<input name="cuKg" inputmode="decimal"></label>
-          <label>Draht – Zahl<input name="drahtN" inputmode="numeric" placeholder="3"></label>
-          <label>Draht – Ø [mm]<input name="drahtD" placeholder="0,75" inputmode="decimal"></label>
-          <label>Wicklungsart<select name="art"><option value="">–</option><option>Einschicht konzentrisch</option><option>Einschicht Gleichspulen</option><option>Zweischicht</option><option>Korbwicklung</option><option>Sonstige</option></select></label>
+          <div class="w drahtbox">
+            <div class="dlab">Draht – Anzahl × Ø [mm]</div>
+            <div id="drahtList"></div>
+            <div class="drow-btns"><button type="button" id="drahtAdd">+ Draht</button><button type="button" id="drahtSplit">Draht aufteilen …</button></div>
+            <div id="splitBox" class="splitbox hidden"></div>
+            <div class="hint" id="drahtSum"></div>
+          </div>
+          <label>Wicklungsart<select name="art"><option value="">–</option><option>Einschicht konzentrisch</option><option>Einschicht Gleichspulen</option><option>Zweischicht</option><option>2 Schicht gleiche Weite</option><option>Korbwicklung</option><option>Sonstige</option></select></label>
           <label>Schritt / Spulenweite<input name="schritt" placeholder="z. B. 1–12"></label>
-          <label>Parallele Zweige<input name="zweige" inputmode="numeric" placeholder="1"></label>
+          <label>Beschaltung<select name="beschaltung"><option value="">–</option><option>Reihe</option><option>Parallel</option></select></label>
           <label>Isolierstoffklasse<select name="isokl"><option value="">–</option><option>B</option><option>F</option><option>H</option></select></label>
         </div>
       </fieldset>
@@ -253,24 +272,38 @@ fieldset > textarea{width:100%}
       </fieldset>
     </form>
   </section>
+  <footer class="ver" id="ver"></footer>
 </main>
 <div class="toast" id="toast"></div>
 
 <script>
-const FIELDS=["hersteller","typ","spannung","strom","leistung","drehzahl","nuten","schaltung","frequenz","cosphi","baugroesse","schild",
+const APP_VERSION="1.2"; // bei jedem Update erhöhen – auch in sw.js
+const FIELDS=["hersteller","typ","spannung","strom","leistung","drehzahl","nuten","schaltung","frequenz","schild",
 "ausladung","paketL","aussen",
-"wdg","cuKg","drahtN","drahtD","art","schritt","zweige","isokl",
+"wdg","cuKg","art","schritt","beschaltung","isokl",
 "maschine","schablone","code","dach","holz","nutiso","zwischendach","bandage","notizen"];
 const LABELS={hersteller:"Firmen Name",typ:"Typ",spannung:"Spannung [V]",strom:"Strom [A]",leistung:"Leistung [kW/PS]",drehzahl:"Drehzahl [U/min]",nuten:"Nuten",schaltung:"Schaltung",frequenz:"Frequenz [Hz]",cosphi:"cos φ",baugroesse:"Baugröße",schild:"Schild sonst.",
 ausladung:"Ausladung",paketL:"Länge",aussen:"Durchmesser",
-wdg:"Windungen",cuKg:"Gewicht [kg]",drahtN:"Draht – Zahl",drahtD:"Draht – Ø [mm]",art:"Wicklungsart",schritt:"Schritt",zweige:"Parallele Zweige",isokl:"Isolierklasse",
+wdg:"Windungen",cuKg:"Gewicht [kg]",drahte:"Draht",art:"Wicklungsart",schritt:"Schritt",beschaltung:"Beschaltung",isokl:"Isolierklasse",
 maschine:"Wickelmaschine",schablone:"Abstand Backen",code:"Code",dach:"Dach",holz:"Holz",nutiso:"Nuten-Isolation",zwischendach:"Zwischendächer",bandage:"Bandage",notizen:"Zusatzbemerkungen"};
-const SECTIONS=[["Motor · Kenndaten",["spannung","strom","leistung","drehzahl","nuten","schaltung","frequenz","cosphi","baugroesse","schild"]],
+const SECTIONS=[["Motor · Kenndaten",["spannung","strom","leistung","drehzahl","nuten","schaltung","frequenz","schild"]],
 ["Abmessungen",["ausladung","paketL","aussen"]],
-["Wicklungsdaten & Drahtangaben",["wdg","cuKg","drahtN","drahtD","art","schritt","zweige","isokl"]],
+["Wicklungsdaten & Drahtangaben",["wdg","cuKg","drahte","art","schritt","beschaltung","isokl"]],
 ["Wickelmaschine",["maschine","schablone","code"]],
 ["Zusatzangaben",["dach","holz","nutiso","zwischendach","bandage"]]];
-const EIN=["datum","kunde","sn","komm","bem"];
+const EIN=["datum","kunde","sn","bem"];
+/* Drahttabelle: Abmessung von Drähten bei Verwendung mehrerer Parallelleiter – [1 Draht, 2 Drähte, 3 Drähte, Querschnitt mm²] */
+const DRAHT_TAB=[["0,20","0,14","0,11–0,12","0,031"],["0,212","0,15","0,12","0,035"],["0,224","0,16","0,13","0,039"],["0,236","0,16–0,17","0,13–0,14","0,044"],
+["0,25","0,17–0,18","0,14–0,15","0,049"],["0,265","0,19","0,15","0,055"],["0,28","0,20","0,16","0,061"],["0,30","0,21","0,17–0,18","0,071"],
+["0,315","0,22","0,18","0,078"],["0,335","0,24","0,19","0,088"],["0,355","0,25","0,20","0,099"],["0,375","0,26–0,27","0,21–0,22","0,110"],
+["0,40","0,28","0,23","0,126"],["0,425","0,30","0,24","0,142"],["0,45","0,32","0,25–0,26","0,159"],["0,475","0,34","0,27","0,177"],
+["0,50","0,35","0,29–0,30","0,196"],["0,53","0,37–0,38","0,30","0,22"],["0,56","0,40","0,32","0,25"],["0,60","0,42","0,35","0,28"],
+["0,63","0,44–0,45","0,36","0,31"],["0,67","0,47–0,48","0,38","0,35"],["0,71","0,50–0,51","0,40–0,41","0,40"],["0,75","0,53","0,43","0,44"],
+["0,80","0,55–0,56","0,45","0,50"],["0,85","0,60","0,48–0,49","0,57"],["0,90","0,64–0,65","0,50–0,52","0,64"],["0,95","0,67","0,54","0,71"],
+["1,00","0,70","0,58","0,78"],["1,06","0,75","0,60–0,61","0,88"],["1,12","0,79–0,80","0,63–0,64","0,98"],["1,18","0,84","0,67–0,68","1,09"],
+["1,25","0,89","0,71–0,72","1,23"],["1,32","0,93–0,94","0,75–0,76","1,37"],["1,40","1,00","0,80","1,54"],["1,50","1,05","0,85","1,77"],
+["1,60","1,15","0,90","2,01"],["1,70","1,20","1,00","2,27"],["1,80","1,25","1,05","2,54"],["1,90","1,35","1,10","2,84"],
+["2,00","1,40","1,15","3,14"],["2,12","1,50","1,20","3,53"],["2,24","1,60","1,30","3,94"],["2,36","1,70","1,30–1,40","4,37"]];
 const $=s=>document.querySelector(s);
 const frm=$("#frm");
 const LIMIT=30; let shown=LIMIT;
@@ -286,11 +319,15 @@ const today=()=>new Date().toLocaleDateString("de-DE");
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("show"),2200)}
 function status(t,warn){const s=$("#status");s.textContent=t;s.classList.toggle("warn",!!warn)}
 function newId(){return "m"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
-const ABT={"21":"E-Motoren","51":"Kleinmaschinen","71":"KSB-Pumpen"};
-function kommInfo(v){if(!/^\d{8}$/.test(v||""))return "";return `Abt. ${v.slice(0,2)}${ABT[v.slice(0,2)]?" "+ABT[v.slice(0,2)]:""} · Jahr 20${v.slice(2,4)} · Auftrag ${v.slice(4)}`}
+function drahte(d){
+  if(Array.isArray(d.drahte))return d.drahte;
+  if(d.drahtD)return [{n:d.drahtN||"1",d:d.drahtD}];
+  return [];
+}
+const drahtTxt=a=>(a||[]).filter(x=>x.d).map(x=>(x.n||1)+"×"+x.d).join(" + ");
 function einsaetze(d){
   if(Array.isArray(d.einsaetze))return d.einsaetze;
-  if(d.kunde||d.komm)return [{datum:d.datum||"",kunde:d.kunde||"",sn:"",komm:d.komm||"",bem:""}];
+  if(d.kunde)return [{datum:d.datum||"",kunde:d.kunde||"",sn:"",bem:""}];
   return [];
 }
 
@@ -299,7 +336,7 @@ function calc(r){
   const f=num(r.frequenz)||50, n=num(r.drehzahl), N=num(r.nuten);
   let p=NaN; if(n>0){p=Math.round(60*f/n); if(p<1)p=1;}
   const poles=2*p, proPol=N/poles, q=N/(poles*3);
-  const k=num(r.drahtN)||1, d=num(r.drahtD), A=k*Math.PI/4*d*d, a=num(r.zweige)||1;
+  const A=(r.drahte||[]).reduce((s,x)=>{const dd=num(x.d);return dd>0?s+(num(x.n)||1)*Math.PI/4*dd*dd:s},0)||NaN, a=r.beschaltung==="Parallel"?2:1;
   const I=nums(r.strom); let Istr=NaN;
   if(I.length>1) Istr=Math.min(...I); else if(I.length===1) Istr=(r.schaltung==="Δ")?I[0]/Math.sqrt(3):I[0];
   const J=Istr/(A*a), ns=60*f/p, s=(ns-n)/ns*100;
@@ -318,24 +355,66 @@ function renderCalc(){
 
 function einRow(e={}){
   const d=document.createElement("div");d.className="ein-row";
-  const ph={datum:"TT.MM.JJ",kunde:"Kunde",sn:"Serien-Nr.",komm:"21"+String(new Date().getFullYear()).slice(2)+"xxxx",bem:"Bemerkung"};
-  d.innerHTML=EIN.map(k=>`<input data-k="${k}" placeholder="${ph[k]}" value="${esc(e[k]||"")}"${k==="komm"?' inputmode="numeric" maxlength="8"':""}>`).join("")+`<button type="button" class="x" title="Zeile entfernen">✕</button>`;
+  const ph={datum:"TT.MM.JJ",kunde:"Kunde",sn:"Serien-Nr.",bem:"Bemerkung"};
+  d.innerHTML=EIN.map(k=>`<input data-k="${k}" placeholder="${ph[k]}" value="${esc(e[k]||"")}">`).join("")+`<button type="button" class="x" title="Zeile entfernen">✕</button>`;
   d.querySelector("button").onclick=()=>{d.remove()};
-  const ki=d.querySelector('[data-k="komm"]');const chk=()=>{const v=ki.value.trim();const ok=!v||/^\d{8}$/.test(v);ki.classList.toggle("bad",!ok);ki.title=ok?kommInfo(v):"Kommissions-Nr. hat 8 Stellen, z. B. 21260003"};
-  ki.addEventListener("input",()=>{ki.value=ki.value.replace(/\D/g,"").slice(0,8);chk()});chk();
   $("#einList").appendChild(d);return d;
 }
-function readEin(){return [...document.querySelectorAll("#einList .ein-row")].map(r=>{const o={};r.querySelectorAll("input").forEach(i=>o[i.dataset.k]=i.value.trim());return o}).filter(o=>["kunde","sn","komm","bem"].some(k=>o[k]))}
-$("#einAdd").onclick=()=>{const l=readEin().slice(-1)[0]||{};const r=einRow({datum:today(),kunde:l.kunde||"",sn:l.sn||""});const k=r.querySelector('[data-k="komm"]');k.value="21"+String(new Date().getFullYear()).slice(2);k.dispatchEvent(new Event("input"));k.focus()};
+function readEin(){return [...document.querySelectorAll("#einList .ein-row")].map(r=>{const o={};r.querySelectorAll("input").forEach(i=>o[i.dataset.k]=i.value.trim());return o}).filter(o=>["kunde","sn","bem"].some(k=>o[k]))}
+$("#einAdd").onclick=()=>{const l=readEin().slice(-1)[0]||{};const r=einRow({datum:today(),kunde:l.kunde||"",sn:l.sn||""});r.querySelector('[data-k="kunde"]').focus()};
+
+/* ---------- Drähte ---------- */
+function drahtRow(x={}){
+  const d=document.createElement("div");d.className="drow";
+  d.innerHTML=`<input data-k="n" inputmode="numeric" placeholder="1" value="${esc(x.n||"")}"><span>×</span><input data-k="d" inputmode="decimal" placeholder="Ø 0,75" value="${esc(x.d||"")}"><button type="button" class="x" title="Entfernen">✕</button>`;
+  d.querySelector("button").onclick=()=>{d.remove();if(!document.querySelector("#drahtList .drow"))drahtRow();renderCalc()};
+  $("#drahtList").appendChild(d);return d;
+}
+function readDraht(){return [...document.querySelectorAll("#drahtList .drow")].map(r=>({n:r.querySelector('[data-k="n"]').value.trim(),d:r.querySelector('[data-k="d"]').value.trim()})).filter(x=>x.d)}
+function fillDraht(a){$("#drahtList").innerHTML="";(a.length?a:[{}]).forEach(drahtRow)}
+$("#drahtAdd").onclick=()=>drahtRow().querySelector('[data-k="d"]').focus();
+
+/* Aufteilen nach Tabelle */
+const vals=t=>t.split("–").map(v=>v.trim());
+function lookup(d){
+  let best=null,bd=1e9;
+  DRAHT_TAB.forEach((r,i)=>{const diff=Math.abs(num(r[0])-d);if(diff<bd){bd=diff;best=i}});
+  return bd<0.0005?best:-1;
+}
+function renderSplit(){
+  const box=$("#splitBox"),rows=readDraht();
+  const src=rows.length===1?rows[0]:null;
+  let html="";
+  if(!src){html=`<div>Zum Aufteilen genau <b>eine</b> Drahtzeile eintragen (z. B. 1 × 1,00).</div>`}
+  else{
+    const d=num(src.d),n=num(src.n)||1,i=lookup(d);
+    const opt=(k,v)=>`<button type="button" data-k="${k}" data-v="${v}">${n*k} × ${v}</button>`;
+    if(i>=0){
+      const r=DRAHT_TAB[i];
+      html=`<div>${n} × ${esc(src.d)} mm (${r[3]} mm² je Draht) ersetzen durch:</div><div class="opts">${vals(r[1]).map(v=>opt(2,v)).join("")}${vals(r[2]).map(v=>opt(3,v)).join("")}</div>`;
+    }else if(d>0){
+      const c=k=>(d/Math.sqrt(k)).toFixed(2).replace(".",",");
+      html=`<div>${esc(src.d)} mm steht nicht in der Tabelle – <b>berechnet</b> (gleicher Querschnitt):</div><div class="opts">${opt(2,c(2))}${opt(3,c(3))}${opt(4,c(4))}</div><div class="hint" style="margin:0">Auf Normdurchmesser runden.</div>`;
+    }else html=`<div>Durchmesser eintragen.</div>`;
+  }
+  const hi=src?lookup(num(src.d)):-1;
+  html+=`<div class="tbl"><table><tr><th>1 Draht</th><th>2 Drähte</th><th>3 Drähte</th><th>mm²</th></tr>${DRAHT_TAB.map((r,i)=>`<tr${i===hi?' class="hit"':""}>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</table></div>`;
+  box.innerHTML=html;
+  box.querySelectorAll(".opts button").forEach(b=>b.onclick=()=>{
+    const n=num(src.n)||1;fillDraht([{n:String(n*+b.dataset.k),d:b.dataset.v}]);box.classList.add("hidden");renderCalc();toast("Draht aufgeteilt: "+n*+b.dataset.k+" × "+b.dataset.v)});
+  if(hi>=0)setTimeout(()=>{const t=box.querySelector("tr.hit");if(t)t.scrollIntoView({block:"nearest"})},0);
+}
+$("#drahtSplit").onclick=()=>{const b=$("#splitBox");b.classList.toggle("hidden");if(!b.classList.contains("hidden"))renderSplit()};
 
 /* ---------- form io ---------- */
 function readForm(){
   const r={};FIELDS.forEach(k=>{const el=frm.elements[k];r[k]=el?el.value.trim():""});
-  r.einsaetze=readEin();
+  r.einsaetze=readEin();r.drahte=readDraht();
   return r;
 }
 function fillForm(r){
   FIELDS.forEach(k=>{const el=frm.elements[k];if(el)el.value=r[k]??""});
+  fillDraht(drahte(r));$("#splitBox").classList.add("hidden");
   $("#einList").innerHTML="";const e=einsaetze(r);(e.length?e:[{datum:today()}]).forEach(einRow);
   $("#meta").textContent=r.updatedAt?("zuletzt "+new Date(r.updatedAt).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})):"neu";
   renderCalc();
@@ -364,8 +443,8 @@ function renderList(){
     return `<div class="card" data-id="${esc(r.id)}">
       <div class="top"><div><div class="mf">${esc(d.hersteller||"—")}</div><div class="typ">${esc(d.typ||"ohne Typ")}</div></div>
       ${d.leistung?`<div class="kw">${/^[\d.,\s]+$/.test(d.leistung)?esc(d.leistung.trim())+"<small> kW</small>":esc(d.leistung)}</div>`:""}</div>
-      <div class="specs">${sp("U",d.spannung&&d.spannung+" V")}${sp("n",d.drehzahl)}${sp("Nut",d.nuten)}${sp("Wdg",d.wdg)}${sp("Draht",d.drahtD&&((d.drahtN||1)+"×"+d.drahtD))}</div>
-      <div class="foot"><span class="last">${l.kunde||l.komm?esc([l.kunde,l.datum,l.komm].filter(Boolean).join(" · ")):"kein Einsatz"}</span>
+      <div class="specs">${sp("U",d.spannung&&d.spannung+" V")}${sp("n",d.drehzahl)}${sp("Nut",d.nuten)}${sp("Wdg",d.wdg)}${sp("Draht",drahtTxt(drahte(d)))}</div>
+      <div class="foot"><span class="last">${l.kunde?esc([l.kunde,l.datum].filter(Boolean).join(" · ")):"kein Einsatz"}</span>
       <span>${fileCounts[r.id]?`<span class="badge n">📷 ${fileCounts[r.id]}</span> `:""}${e.length?`<span class="badge n">${e.length}× Einsatz</span>`:""}</span></div></div>`}).join("")}</div>${!q&&total>view.length?`<div style="text-align:center;margin-top:16px"><button id="btnMore">Weitere ${Math.min(LIMIT,total-view.length)} anzeigen</button></div>`:""}`;
   const m=$("#btnMore");if(m)m.onclick=()=>{shown+=LIMIT;renderList()};
   document.querySelectorAll(".card").forEach(c=>c.onclick=()=>{const r=records.find(x=>x.id===c.dataset.id);if(r)showForm(r)});
@@ -541,11 +620,12 @@ function download(filename,data,mime){
   a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
 }
 const offer=(f,d,m)=>{download(f,d,m);toast("Im Download-Ordner abgelegt")};
-const einTxt=e=>[e.datum,e.kunde,e.sn&&"SN "+e.sn,e.komm&&"Komm. "+e.komm,e.bem].filter(Boolean).join(", ");
+const einTxt=e=>[e.datum,e.kunde,e.sn&&"SN "+e.sn,e.bem].filter(Boolean).join(", ");
+const val=(d,k)=>k==="drahte"?drahtTxt(drahte(d)):(d[k]??"");
 function csvCell(v){v=String(v??"");return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 $("#btnCsv").onclick=()=>{
-  const head=[...FIELDS.map(k=>LABELS[k]),"Einsätze"];
-  const rows=records.map(r=>[...FIELDS.map(k=>r.data[k]),einsaetze(r.data).map(einTxt).join(" | ")]);
+  const head=[...FIELDS.map(k=>LABELS[k]),"Draht","Einsätze"];
+  const rows=records.map(r=>[...FIELDS.map(k=>r.data[k]),drahtTxt(drahte(r.data)),einsaetze(r.data).map(einTxt).join(" | ")]);
   offer("wickeldaten.csv","﻿"+[head,...rows].map(r=>r.map(csvCell).join(";")).join("\r\n"),"text/csv");
 };
 $("#btnJson").onclick=()=>backupNow(false);$("#btnBackup").onclick=()=>backupNow(false);
@@ -557,6 +637,7 @@ $("#fileImp").onchange=async e=>{
     const j=JSON.parse(await f.text());const arr=Array.isArray(j)?j:j&&Array.isArray(j.records)?j.records:null;if(!arr)throw 0;let n=0;
     for(const r of arr){if(r&&r.data&&typeof r.data==="object"){const d={};FIELDS.forEach(k=>d[k]=String(r.data[k]??""));
       d.einsaetze=einsaetze(r.data).map(x=>{const o={};EIN.forEach(k=>o[k]=String(x[k]||""));return o});
+      d.drahte=drahte(r.data).map(x=>({n:String(x.n||""),d:String(x.d||"")}));
       if(r.data.updatedAt)d.updatedAt=+r.data.updatedAt||0;
       const id=String(r.id||newId());const i=records.findIndex(x=>x.id===id);if(i>=0)records[i]={id,data:d};else records.push({id,data:d});n++}}
     lsSave();setMeta({dirty:0});updateStatus();renderList();toast(n+" Motoren geladen");
@@ -566,7 +647,7 @@ $("#fileImp").onchange=async e=>{
 };
 
 function sheetText(d){
-  const c=calc(d),L=k=>d[k]?`${LABELS[k]}: ${d[k]}`:null;
+  const c=calc(d),L=k=>val(d,k)?`${LABELS[k]}: ${val(d,k)}`:null;
   const g=(t,ks)=>{const x=ks.map(L).filter(Boolean);return x.length?`== ${t} ==\n`+x.join("\n"):null};
   const e=d.einsaetze||[];
   return [`WICKELDATEN – ${d.hersteller||""} ${d.typ||""}`.trim(),
@@ -578,9 +659,9 @@ function sheetText(d){
 $("#btnCopy").onclick=async()=>{try{await navigator.clipboard.writeText(sheetText(readForm()));toast("Kopiert")}catch(e){toast("Kopieren nicht möglich")}};
 $("#btnSheet").onclick=()=>{
   const d=readForm(),c=calc(d);
-  const tr=k=>d[k]?`<tr><th>${esc(LABELS[k])}</th><td>${esc(d[k])}</td></tr>`:"";
+  const tr=k=>val(d,k)?`<tr><th>${esc(LABELS[k])}</th><td>${esc(val(d,k))}</td></tr>`:"";
   const sec=(t,ks)=>{const r=ks.map(tr).join("");return r?`<h2>${t}</h2><table>${r}</table>`:""};
-  const ein=d.einsaetze.length?`<h2>Einsätze</h2><table class="e"><tr><th>Datum</th><th>Kunde</th><th>Serien-Nr.</th><th>Komm.</th><th>Bemerkung</th></tr>${d.einsaetze.map(e=>`<tr>${EIN.map(k=>`<td>${esc(e[k])}</td>`).join("")}</tr>`).join("")}</table>`:"";
+  const ein=d.einsaetze.length?`<h2>Einsätze</h2><table class="e"><tr><th>Datum</th><th>Kunde</th><th>Serien-Nr.</th><th>Bemerkung</th></tr>${d.einsaetze.map(e=>`<tr>${EIN.map(k=>`<td>${esc(e[k])}</td>`).join("")}</tr>`).join("")}</table>`:"";
   const html=`<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>Wickeldaten ${esc(d.hersteller)} ${esc(d.typ)}</title>
 <style>body{font:12pt Arial,sans-serif;margin:15mm;color:#000}h1{font-size:17pt;border-bottom:2px solid #000;margin:0 0 6px}h2{font-size:11pt;text-transform:uppercase;margin:12px 0 3px;border-bottom:1px solid #999}
 table{border-collapse:collapse;width:100%}th,td{border:1px solid #bbb;padding:3px 6px;text-align:left;font-size:11pt}th{width:42%;background:#f2f2f2;font-weight:normal}table.e th{width:auto}.cols{columns:2;column-gap:10mm}.cols>div{break-inside:avoid}.u{border:1px solid #c80;padding:4px;margin-top:8px}</style></head><body>
@@ -601,6 +682,7 @@ let _t="hell";try{_t=localStorage.getItem("wickeldaten.theme")||"hell"}catch(e){
 $("#btnTheme").onclick=()=>{const i=THEMES.findIndex(x=>x[0]===document.documentElement.dataset.theme);applyTheme(THEMES[(i+1)%3][0])};
 
 /* ---------- init ---------- */
+$("#ver").textContent="Version "+APP_VERSION;
 records=lsLoad();renderList();updateStatus();loadCounts().then(renderList);
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});

@@ -61,7 +61,11 @@ Die JSON-Sicherung aus der Testversion auf claude.ai lässt sich genauso laden.
 ## 4. Update der App
 
 1. Neue Dateien ins Repository hochladen.
-2. In `sw.js` die Zeile `const VERSION = "wickeldaten-v1";` hochzählen (v2, v3 …), sonst bleibt die alte Version im Cache.
+2. Versionsnummer an **zwei Stellen** gleich hochzählen, z. B. 1.1 → 1.2:
+   - `index.html`: `const APP_VERSION="1.1";`
+   - `sw.js`: `const VERSION = "wickeldaten-1.1";`
+   Ohne neue Nummer in `sw.js` bleibt die alte Version im Cache.
+   Die Nummer steht unten in der App, so siehst du, ob das Update angekommen ist.
 3. App auf dem Tablet mit Internet zweimal neu öffnen.
 
 Die Daten bleiben bei einem Update erhalten. Sie gehen nur verloren, wenn in Chrome die Website-Daten gelöscht werden oder die App deinstalliert wird. Dafür gibt es die Sicherung.
