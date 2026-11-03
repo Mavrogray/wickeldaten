@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="hell">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wickeldaten-Kartei</title>
+<meta name="theme-color" content="#b8581a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#f3f1ec; --card:#fff; --ink:#1b1f22; --muted:#6b7279; --line:#e2ded6; --soft:#f7f5f1;
+  --acc:#b8581a; --acc2:#93440f; --accbg:#fbeee4; --ok:#2f7a4a; --warn:#a8741a; --warnbg:#fbf2df; --err:#b23a3a;
+  --mono:ui-monospace,"Roboto Mono","DejaVu Sans Mono",monospace; --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:14px; --sh:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.05);
+}
+html[data-theme="dunkel"]{--bg:#141618;--card:#1e2124;--ink:#ebe8e3;--muted:#9aa1a7;--line:#33373b;--soft:#25292c;--acc:#e48b4c;--acc2:#f2a46c;--accbg:#3a2a1e;--warnbg:#3a3020;--sh:none;color-scheme:dark}
+@media (prefers-color-scheme:dark){html[data-theme="auto"]{--bg:#141618;--card:#1e2124;--ink:#ebe8e3;--muted:#9aa1a7;--line:#33373b;--soft:#25292c;--acc:#e48b4c;--acc2:#f2a46c;--accbg:#3a2a1e;--warnbg:#3a3020;--sh:none;color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--sans)}
+main{max-width:1200px;margin:0 auto;padding:20px 24px 100px}
+button{font:inherit;font-weight:500;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 16px;min-height:44px;border-radius:10px;cursor:pointer;touch-action:manipulation}
+button:hover{border-color:var(--acc)}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+button.pri:hover{background:var(--acc2)}
+button.ghost{background:transparent;border-color:transparent}
+button.danger{color:var(--err)}
+button:disabled{opacity:.45;cursor:default}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:9px;padding:9px 11px;min-height:44px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-offset:-1px;background:var(--card)}
+
+/* ---- Startseite ---- */
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:8px 0 18px}
+.hero h1{margin:0;font-size:30px;font-weight:700;letter-spacing:-.4px}
+.hero h1 span{color:var(--acc)}
+.sub{color:var(--muted);font-size:14px;margin-top:2px}
+.sub.warn{color:var(--warn)}
+.tools{display:flex;gap:8px;position:relative}
+.menu{position:absolute;right:0;top:52px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh);padding:6px;display:none;min-width:200px;z-index:10}
+.menu.show{display:block}
+.menu button{display:block;width:100%;text-align:left;border:0;border-radius:8px}
+.menu button:hover{background:var(--soft)}
+.searchbox{position:relative;margin-bottom:14px}
+.searchbox input{padding-left:44px;min-height:52px;font-size:17px;background:var(--card);border-radius:14px;box-shadow:var(--sh)}
+.searchbox svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.chip{border-radius:999px;min-height:36px;padding:6px 14px;font-size:14px;background:var(--card)}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:16px 18px;cursor:pointer;display:flex;flex-direction:column;gap:10px;transition:transform .12s,border-color .12s}
+.card:hover{border-color:var(--acc);transform:translateY(-1px)}
+.card:active{transform:scale(.99)}
+.card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card .mf{font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--acc)}
+.card .typ{font-size:18px;font-weight:600;line-height:1.25;word-break:break-word}
+.kw{font:600 20px var(--mono);white-space:nowrap}
+.kw small{font-size:12px;color:var(--muted);font-weight:500}
+.specs{display:flex;flex-wrap:wrap;gap:6px}
+.spec{font:13px var(--mono);background:var(--soft);border-radius:7px;padding:3px 8px}
+.spec b{font-weight:500;color:var(--muted);font-family:var(--sans);font-size:11px;margin-right:4px;text-transform:uppercase}
+.card .foot{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:10px;font-size:13px;color:var(--muted)}
+.card .foot .last{color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{font-size:11px;font-weight:600;border-radius:6px;padding:2px 7px;white-space:nowrap}
+.badge.w{color:var(--warn);background:var(--warnbg)}
+.badge.n{color:var(--acc);background:var(--accbg)}
+.empty{padding:50px 20px;text-align:center;color:var(--muted);background:var(--card);border:1px dashed var(--line);border-radius:var(--r)}
+.fab{position:fixed;right:24px;bottom:24px;min-height:58px;padding:0 22px;border-radius:16px;font-size:16px;font-weight:600;box-shadow:0 6px 20px rgba(184,88,26,.35);z-index:8}
+
+/* ---- Formular ---- */
+.formbar{position:sticky;top:0;z-index:6;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 0;margin-bottom:6px}
+.formtitle{font-size:22px;font-weight:700;margin:4px 0 14px}
+.formtitle small{display:block;font:12px var(--mono);color:var(--muted);font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+fieldset{border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:var(--sh);padding:14px 16px 16px;margin:0}
+fieldset.full{grid-column:1/-1}
+legend{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--acc);padding:0 6px}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.f label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);font-weight:500}
+.f label.w{grid-column:1/-1}
+.f input,.f select{font-family:var(--mono);font-size:15px}
+.calc{display:grid;grid-template-columns:1fr auto;gap:6px 14px;font-size:15px}
+.calc div:nth-child(odd){color:var(--muted)}
+.calc div:nth-child(even){font-family:var(--mono);text-align:right;font-weight:500}
+.hint{font-size:12px;color:var(--muted);margin-top:10px}
+.iso-row{display:grid;grid-template-columns:1fr 1.2fr auto;gap:6px;margin-bottom:6px}
+.ein-head,.ein-row{display:grid;grid-template-columns:110px 1.3fr 1.2fr 1fr 1.4fr 44px;gap:6px;align-items:center}
+.ein-head{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:0 2px 4px}
+.ein-row{margin-bottom:6px}
+.ein-row input{font-family:var(--mono);font-size:14px}
+.x{padding:0;min-width:44px}
+.unklar input{border-color:var(--warn)}
+.ein-row input.bad{border-color:var(--warn);background:var(--warnbg)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:15px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.toast.show{opacity:1}
+.confirm{display:none;gap:6px;align-items:center;font-size:15px}
+.confirm.show{display:inline-flex}
+.meta{font:12px var(--mono);color:var(--muted);margin-left:auto}
+.hidden{display:none!important}
+@media (max-width:760px){
+  main{padding:14px 14px 100px}.hero h1{font-size:24px}
+  .ein-head{display:none}
+  .ein-row{grid-template-columns:1fr 1fr;background:var(--soft);padding:8px;border-radius:10px}
+  .ein-row .x{grid-column:2;justify-self:end}
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<main>
+  <section id="viewList">
+    <div class="hero">
+      <div><h1>Wickeldaten<span>.</span></h1><div class="sub" id="status"></div></div>
+      <div class="tools">
+        <button id="btnBackup" class="hidden" title="Ungesicherte Änderungen sichern">⬇ Sichern</button>
+        <button id="btnTheme" title="Darstellung umschalten">☀ Hell</button>
+        <button id="btnMenu" aria-label="Export">⋯ Export</button>
+        <div class="menu" id="menu">
+          <button id="btnJson">Sicherung speichern</button>
+          <button id="btnImp">Sicherung laden</button>
+          <button id="btnCsv">Alle als CSV (Excel)</button>
+        </div>
+        <input type="file" id="fileImp" accept=".json,application/json" class="hidden">
+      </div>
+    </div>
+    <div class="searchbox">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Hersteller, Typ, kW, Kunde, Serien- oder Komm.-Nr. …">
+    </div>
+    <div class="sub" id="hits" style="margin:-4px 0 12px 4px"></div>
+    <div id="listWrap"></div>
+    <button class="pri fab" id="btnNew">+ Neuer Motor</button>
+  </section>
+
+  <section id="viewForm" class="hidden">
+    <div class="formbar">
+      <button id="btnBack">← Übersicht</button>
+      <button class="pri" id="btnSave">Speichern</button>
+      <button id="btnSheet">Datenblatt</button>
+      <button id="btnCopy">Text kopieren</button>
+      <button id="btnDup">Duplizieren</button>
+      <button class="danger" id="btnDel">Löschen</button>
+      <span class="confirm" id="delConfirm">Wirklich löschen? <button class="danger" id="delYes">Ja</button><button id="delNo">Nein</button></span>
+      <span class="meta" id="meta"></span>
+    </div>
+    <div class="formtitle" id="formTitle"></div>
+    <form id="frm" class="grid" autocomplete="off" onsubmit="return false">
+      <fieldset>
+        <legend>Typenschild</legend>
+        <div class="f">
+          <label>Hersteller<input name="hersteller"></label>
+          <label>Typ<input name="typ"></label>
+          <label>Spannung [V]<input name="spannung" placeholder="230/400"></label>
+          <label>Strom [A]<input name="strom" placeholder="6,9/4"></label>
+          <label>Leistung [kW]<input name="leistung" inputmode="decimal"></label>
+          <label>Drehzahl [1/min]<input name="drehzahl" inputmode="numeric"></label>
+          <label>Frequenz [Hz]<input name="frequenz" placeholder="50" inputmode="numeric"></label>
+          <label>cos φ<input name="cosphi" inputmode="decimal"></label>
+          <label>Schaltung<select name="schaltung"><option value="">–</option><option>Δ/Y</option><option>Y</option><option>Δ</option><option>YY/Y (Dahlander)</option><option>Sonstige</option></select></label>
+          <label>Baugröße / Bauform<input name="baugroesse"></label>
+          <label class="w">Sonstige Schildangaben<input name="schild"></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Blechpaket</legend>
+        <div class="f">
+          <label>Nutenzahl<input name="nuten" inputmode="numeric"></label>
+          <label>Paketlänge L [mm]<input name="paketL" inputmode="decimal"></label>
+          <label>Bohrung Ø [mm]<input name="bohrung" inputmode="decimal"></label>
+          <label>Außen Ø [mm]<input name="aussen" inputmode="decimal"></label>
+          <label class="w">Sonstige Paketmaße<input name="paketSonst"></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="full">
+        <legend>Einsätze · Datum / Kunde / Serien-Nr.</legend>
+        <div class="ein-head"><div>Datum</div><div>Kunde</div><div>Serien-Nr.</div><div>Komm.-Nr.</div><div>Bemerkung</div><div></div></div>
+        <div id="einList"></div>
+        <button type="button" id="einAdd">+ Einsatz hinzufügen</button>
+        <div class="hint">Neue Zeile übernimmt Kunde und Serien-Nr. der letzten Zeile („— " —“). Komm.-Nr. wie im Stundenbuch (8-stellig, z. B. 21260003 = Abt. 21, Jahr 26, Auftrag 0003) – Abteilung und Jahr sind vorbelegt.</div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Wicklung</legend>
+        <div class="f">
+          <label>Windungen / Spule<input name="wdg" inputmode="numeric"></label>
+          <label>Wicklungsart<select name="art"><option value="">–</option><option>Einschicht konzentrisch</option><option>Einschicht Gleichspulen</option><option>Zweischicht</option><option>Korbwicklung</option><option>Sonstige</option></select></label>
+          <label>Drähte parallel<input name="drahtN" inputmode="numeric" placeholder="3"></label>
+          <label>Draht Ø blank [mm]<input name="drahtD" placeholder="0,75" inputmode="decimal"></label>
+          <label>Parallele Zweige a<input name="zweige" inputmode="numeric" placeholder="1"></label>
+          <label>Schritt / Spulenweite<input name="schritt" placeholder="z. B. 1–12"></label>
+          <label>Spulen je Gruppe<input name="spGruppe"></label>
+          <label>Isolierstoffklasse<select name="isokl"><option value="">–</option><option>B</option><option>F</option><option>H</option></select></label>
+          <label>Kupfergewicht [kg]<input name="cuKg" inputmode="decimal"></label>
+          <label>Drahtsorte / Lack<input name="drahtSorte" placeholder="z. B. Grad 2"></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Berechnet</legend>
+        <div class="calc" id="calc"></div>
+        <div class="hint">Strangstrom: bei Doppelangabe (Δ/Y) der kleinere Wert, bei reinem Δ I/√3. Stromdichte = Strangstrom ÷ (Leiterquerschnitt × Zweige). Nur Kontrollwerte.</div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Wickelmaschine / Schablone</legend>
+        <div class="f">
+          <label>Maschine<input name="maschine" placeholder="Odimat 2100"></label>
+          <label>Schablonenmaß<input name="schablone"></label>
+          <label class="w">Einstellung / Positionen<input name="einstellung" placeholder="Gleichwelle 1,2,3,4"></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Isolation / Bandage</legend>
+        <div id="isoList"></div>
+        <button type="button" id="isoAdd">+ Zeile</button>
+        <div class="f" style="margin-top:10px">
+          <label class="w">Bandage / Faden<input name="bandage"></label>
+          <label class="w">Tränkung / Harz<input name="traenkung"></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="full">
+        <legend>Notizen / unklar</legend>
+        <div class="f">
+          <label class="w unklar">Unklare Angaben (Bedeutung offen)<input name="unklar"></label>
+          <label class="w">Notizen<textarea name="notizen" rows="3"></textarea></label>
+        </div>
+      </fieldset>
+    </form>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const FIELDS=["hersteller","typ","spannung","strom","leistung","drehzahl","frequenz","cosphi","schaltung","baugroesse","schild",
+"nuten","paketL","bohrung","aussen","paketSonst",
+"wdg","art","drahtN","drahtD","zweige","schritt","spGruppe","isokl","cuKg","drahtSorte",
+"maschine","schablone","einstellung","bandage","traenkung","unklar","notizen"];
+const LABELS={hersteller:"Hersteller",typ:"Typ",spannung:"Spannung [V]",strom:"Strom [A]",leistung:"Leistung [kW]",drehzahl:"Drehzahl [1/min]",frequenz:"Frequenz [Hz]",cosphi:"cos φ",schaltung:"Schaltung",baugroesse:"Baugröße",schild:"Schild sonst.",
+nuten:"Nuten",paketL:"Paketlänge L [mm]",bohrung:"Bohrung Ø [mm]",aussen:"Außen Ø [mm]",paketSonst:"Paket sonst.",
+wdg:"Windungen/Spule",art:"Wicklungsart",drahtN:"Drähte parallel",drahtD:"Draht Ø [mm]",zweige:"Parallele Zweige",schritt:"Schritt",spGruppe:"Spulen je Gruppe",isokl:"Isolierklasse",cuKg:"Kupfer [kg]",drahtSorte:"Drahtsorte",
+maschine:"Wickelmaschine",schablone:"Schablone",einstellung:"Einstellung",bandage:"Bandage",traenkung:"Tränkung",unklar:"Unklar",notizen:"Notizen"};
+const EIN=["datum","kunde","sn","komm","bem"];
+const $=s=>document.querySelector(s);
+const frm=$("#frm");
+const LIMIT=30; let shown=LIMIT;
+let canWrite=true, records=[], current=null;
+const LS="wickeldaten.local.v1";
+
+/* ---------- helpers ---------- */
+const num=v=>{if(v==null)return NaN;const m=String(v).replace(",",".").match(/-?\d+(\.\d+)?/);return m?parseFloat(m[0]):NaN};
+const nums=v=>String(v||"").split(/[\/;]/).map(num).filter(x=>!isNaN(x));
+const fmt=(x,d=2)=>isNaN(x)||!isFinite(x)?"–":x.toLocaleString("de-DE",{maximumFractionDigits:d});
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const today=()=>new Date().toLocaleDateString("de-DE");
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("show"),2200)}
+function status(t,warn){const s=$("#status");s.textContent=t;s.classList.toggle("warn",!!warn)}
+function newId(){return "m"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+const ABT={"21":"E-Motoren","51":"Kleinmaschinen","71":"KSB-Pumpen"};
+function kommInfo(v){if(!/^\d{8}$/.test(v||""))return "";return `Abt. ${v.slice(0,2)}${ABT[v.slice(0,2)]?" "+ABT[v.slice(0,2)]:""} · Jahr 20${v.slice(2,4)} · Auftrag ${v.slice(4)}`}
+function einsaetze(d){
+  if(Array.isArray(d.einsaetze))return d.einsaetze;
+  if(d.kunde||d.komm)return [{datum:d.datum||"",kunde:d.kunde||"",sn:"",komm:d.komm||"",bem:""}];
+  return [];
+}
+
+/* ---------- calculations ---------- */
+function calc(r){
+  const f=num(r.frequenz)||50, n=num(r.drehzahl), N=num(r.nuten);
+  let p=NaN; if(n>0){p=Math.round(60*f/n); if(p<1)p=1;}
+  const poles=2*p, proPol=N/poles, q=N/(poles*3);
+  const k=num(r.drahtN)||1, d=num(r.drahtD), A=k*Math.PI/4*d*d, a=num(r.zweige)||1;
+  const I=nums(r.strom); let Istr=NaN;
+  if(I.length>1) Istr=Math.min(...I); else if(I.length===1) Istr=(r.schaltung==="Δ")?I[0]/Math.sqrt(3):I[0];
+  const J=Istr/(A*a), ns=60*f/p, s=(ns-n)/ns*100;
+  return {p,poles,proPol,q,A,Istr,J,ns,s};
+}
+function renderCalc(){
+  const r=readForm(), c=calc(r);
+  const rows=[["Polzahl 2p",isNaN(c.poles)?"–":c.poles+"-polig"],["Synchrondrehzahl",fmt(c.ns,0)+" 1/min"],["Schlupf",fmt(c.s,1)+" %"],
+    ["Nuten je Pol",fmt(c.proPol,2)],["q (Nuten je Pol u. Strang)",fmt(c.q,2)],["Leiterquerschnitt",fmt(c.A,3)+" mm²"],
+    ["Strangstrom",fmt(c.Istr,2)+" A"],["Stromdichte",fmt(c.J,2)+" A/mm²"]];
+  $("#calc").innerHTML=rows.map(([a,b])=>`<div>${a}</div><div>${b}</div>`).join("");
+  $("#formTitle").innerHTML=`${esc((r.hersteller+" "+r.typ).trim()||"Neuer Motor")}<small>${esc([r.leistung&&r.leistung+" kW",r.drehzahl&&r.drehzahl+" 1/min",r.nuten&&r.nuten+" Nuten"].filter(Boolean).join(" · "))}</small>`;
+}
+
+/* ---------- dynamic rows ---------- */
+function isoRow(b="",m=""){
+  const d=document.createElement("div");d.className="iso-row";
+  d.innerHTML=`<input placeholder="Bezeichnung (Nutiso, Deckschieber …)" value="${esc(b)}"><input placeholder="Maße / Material" value="${esc(m)}"><button type="button" class="x" title="Zeile entfernen">✕</button>`;
+  d.querySelector("button").onclick=()=>d.remove();
+  $("#isoList").appendChild(d);
+}
+$("#isoAdd").onclick=()=>isoRow();
+function einRow(e={}){
+  const d=document.createElement("div");d.className="ein-row";
+  const ph={datum:"TT.MM.JJ",kunde:"Kunde",sn:"Serien-Nr.",komm:"21"+String(new Date().getFullYear()).slice(2)+"xxxx",bem:"Bemerkung"};
+  d.innerHTML=EIN.map(k=>`<input data-k="${k}" placeholder="${ph[k]}" value="${esc(e[k]||"")}"${k==="komm"?' inputmode="numeric" maxlength="8"':""}>`).join("")+`<button type="button" class="x" title="Zeile entfernen">✕</button>`;
+  d.querySelector("button").onclick=()=>{d.remove()};
+  const ki=d.querySelector('[data-k="komm"]');const chk=()=>{const v=ki.value.trim();const ok=!v||/^\d{8}$/.test(v);ki.classList.toggle("bad",!ok);ki.title=ok?kommInfo(v):"Kommissions-Nr. hat 8 Stellen, z. B. 21260003"};
+  ki.addEventListener("input",()=>{ki.value=ki.value.replace(/\D/g,"").slice(0,8);chk()});chk();
+  $("#einList").appendChild(d);return d;
+}
+function readEin(){return [...document.querySelectorAll("#einList .ein-row")].map(r=>{const o={};r.querySelectorAll("input").forEach(i=>o[i.dataset.k]=i.value.trim());return o}).filter(o=>EIN.some(k=>o[k]))}
+$("#einAdd").onclick=()=>{const l=readEin().slice(-1)[0]||{};const r=einRow({datum:today(),kunde:l.kunde||"",sn:l.sn||""});const k=r.querySelector('[data-k="komm"]');k.value="21"+String(new Date().getFullYear()).slice(2);k.dispatchEvent(new Event("input"));k.focus()};
+
+/* ---------- form io ---------- */
+function readForm(){
+  const r={};FIELDS.forEach(k=>{const el=frm.elements[k];r[k]=el?el.value.trim():""});
+  r.einsaetze=readEin();
+  r.isolation=[...document.querySelectorAll("#isoList .iso-row")].map(d=>{const i=d.querySelectorAll("input");return {bez:i[0].value.trim(),mass:i[1].value.trim()}}).filter(x=>x.bez||x.mass);
+  return r;
+}
+function fillForm(r){
+  FIELDS.forEach(k=>{const el=frm.elements[k];if(el)el.value=r[k]??""});
+  $("#einList").innerHTML="";const e=einsaetze(r);(e.length?e:[{datum:today()}]).forEach(einRow);
+  $("#isoList").innerHTML="";(r.isolation||[]).forEach(x=>isoRow(x.bez,x.mass));if(!(r.isolation||[]).length)isoRow();
+  $("#meta").textContent=r.updatedAt?("zuletzt "+new Date(r.updatedAt).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})):"neu";
+  renderCalc();
+}
+frm.addEventListener("input",renderCalc);
+
+/* ---------- views ---------- */
+function showList(){$("#viewForm").classList.add("hidden");$("#viewList").classList.remove("hidden");current=null;renderList();window.scrollTo(0,0)}
+function showForm(rec){
+  current=rec;$("#viewList").classList.add("hidden");$("#viewForm").classList.remove("hidden");
+  $("#delConfirm").classList.remove("show");fillForm(rec.data);
+  $("#btnSave").disabled=!canWrite;$("#btnDel").disabled=!canWrite||!rec.id;window.scrollTo(0,0);
+}
+function renderChips(){
+  const cnt={};records.forEach(r=>{const h=(r.data.hersteller||"").trim();if(h)cnt[h]=(cnt[h]||0)+1});
+  const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0]);
+  const nU=records.filter(r=>r.data.unklar).length;
+  const chips=[["alle",`Alle · ${records.length}`]];if(nU)chips.push(["pruefen",`Zu prüfen · ${nU}`]);
+  top.forEach(h=>chips.push(["h:"+h,h]));
+  if(!chips.some(c=>c[0]===filter))filter="alle";
+  $("#chips").innerHTML=records.length?chips.map(([k,t])=>`<button class="chip${k===filter?" on":""}" data-k="${esc(k)}">${esc(t)}</button>`).join(""):"";
+  document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{filter=b.dataset.k;renderList()});
+}
+function renderList(){
+  const q=$("#q").value.trim().toLowerCase();
+  const list=records.filter(r=>!q||JSON.stringify(r.data).toLowerCase().includes(q)).sort((a,b)=>(b.data.updatedAt||0)-(a.data.updatedAt||0));
+  const total=list.length, view=q?list:list.slice(0,shown);
+  $("#hits").textContent=!records.length?"":q?`${total} von ${records.length} Motoren`:(total>view.length?`Zuletzt bearbeitet · ${view.length} von ${total} – Rest über die Suche`:"");
+  if(!records.length){$("#listWrap").innerHTML=`<div class="empty">Noch keine Motoren erfasst.<br>Unten rechts „+ Neuer Motor“.</div>`;return}
+  if(!list.length){$("#listWrap").innerHTML=`<div class="empty">Kein Treffer.</div>`;return}
+  const sp=(b,v)=>v?`<span class="spec"><b>${b}</b>${esc(v)}</span>`:"";
+  $("#listWrap").innerHTML=`<div class="cards">${view.map(r=>{const d=r.data,e=einsaetze(d),l=e[e.length-1]||{};
+    return `<div class="card" data-id="${esc(r.id)}">
+      <div class="top"><div><div class="mf">${esc(d.hersteller||"—")}</div><div class="typ">${esc(d.typ||"ohne Typ")}</div></div>
+      ${d.leistung?`<div class="kw">${esc(d.leistung)}<small> kW</small></div>`:""}</div>
+      <div class="specs">${sp("U",d.spannung&&d.spannung+" V")}${sp("n",d.drehzahl)}${sp("Nut",d.nuten)}${sp("Wdg",d.wdg)}${sp("Draht",d.drahtD&&((d.drahtN||1)+"×"+d.drahtD))}</div>
+      <div class="foot"><span class="last">${l.kunde||l.komm?esc([l.kunde,l.datum,l.komm].filter(Boolean).join(" · ")):"kein Einsatz"}</span>
+      <span>${d.unklar?'<span class="badge w">prüfen</span> ':""}${e.length?`<span class="badge n">${e.length}× Einsatz</span>`:""}</span></div></div>`}).join("")}</div>${!q&&total>view.length?`<div style="text-align:center;margin-top:16px"><button id="btnMore">Weitere ${Math.min(LIMIT,total-view.length)} anzeigen</button></div>`:""}`;
+  const m=$("#btnMore");if(m)m.onclick=()=>{shown+=LIMIT;renderList()};
+  document.querySelectorAll(".card").forEach(c=>c.onclick=()=>{const r=records.find(x=>x.id===c.dataset.id);if(r)showForm(r)});
+}
+$("#q").addEventListener("input",()=>{shown=LIMIT;renderList()});
+$("#btnNew").onclick=()=>showForm({id:null,data:{frequenz:"50"}});
+$("#btnBack").onclick=showList;
+$("#btnMenu").onclick=e=>{e.stopPropagation();$("#menu").classList.toggle("show")};
+document.addEventListener("click",()=>$("#menu").classList.remove("show"));
+
+/* ---------- storage ---------- */
+function lsLoad(){try{return JSON.parse(localStorage.getItem(LS)||"[]")}catch(e){return []}}
+function lsSave(){localStorage.setItem(LS,JSON.stringify(records))}
+async function saveRecord(id,data,keepTime){
+  if(!keepTime||!data.updatedAt)data.updatedAt=Date.now();
+  const i=records.findIndex(r=>r.id===id);if(i>=0)records[i]={id,data};else records.push({id,data});
+  lsSave();markDirty();
+}
+async function deleteRecord(id){records=records.filter(r=>r.id!==id);lsSave();markDirty();}
+
+/* ---------- Sicherung ---------- */
+const META="wickeldaten.meta";
+function meta(){try{return JSON.parse(localStorage.getItem(META)||"{}")}catch(e){return {}}}
+function setMeta(m){try{localStorage.setItem(META,JSON.stringify(Object.assign(meta(),m)))}catch(e){}}
+const isoDay=d=>{const x=new Date(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")};
+function markDirty(){const m=meta();setMeta({dirty:(m.dirty||0)+1});
+  if(!m.last||isoDay(m.last)!==isoDay(Date.now()))backupNow(true); else updateStatus();}
+function backupNow(auto){
+  const payload={app:"wickeldaten",format:1,erstellt:new Date().toISOString(),anzahl:records.length,records};
+  download(`wickeldaten-backup-${isoDay(Date.now())}.json`,JSON.stringify(payload,null,1),"application/json");
+  setMeta({last:Date.now(),dirty:0});updateStatus();toast(auto?"Tagessicherung im Download-Ordner abgelegt":"Sicherung im Download-Ordner abgelegt");
+}
+function updateStatus(){
+  const m=meta(),n=records.length;
+  const last=m.last?new Date(m.last).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}):"noch nie";
+  status(`${n} Motor${n===1?"":"en"} · letzte Sicherung: ${last}${m.dirty?` · ${m.dirty} Änderung${m.dirty===1?"":"en"} seitdem`:""}`,!m.last||m.dirty>0);
+  $("#btnBackup").classList.toggle("hidden",!(m.dirty>0)||!n);
+}
+function setWrite(w){canWrite=w;$("#btnNew").classList.toggle("hidden",!w)}
+
+$("#btnSave").onclick=async()=>{
+  const data=readForm();
+  if(!data.hersteller&&!data.typ){toast("Mindestens Hersteller oder Typ angeben");return}
+  const id=current.id||newId();$("#btnSave").disabled=true;
+  try{await saveRecord(id,data);current={id,data};$("#btnDel").disabled=false;$("#meta").textContent="gespeichert "+new Date().toLocaleTimeString("de-DE",{timeStyle:"short"});if(meta().dirty)toast("Gespeichert")}
+  catch(e){toast(e&&e.name==="QuotaExceededError"?"Gerätespeicher voll – Sicherung machen und melden":"Fehler beim Speichern: "+(e&&e.message||e))}
+  $("#btnSave").disabled=!canWrite;
+};
+$("#btnDel").onclick=()=>$("#delConfirm").classList.add("show");
+$("#delNo").onclick=()=>$("#delConfirm").classList.remove("show");
+$("#delYes").onclick=async()=>{try{await deleteRecord(current.id);toast("Gelöscht");showList()}catch(e){toast("Löschen fehlgeschlagen")}};
+$("#btnDup").onclick=()=>{const d=readForm();d.einsaetze=[];showForm({id:null,data:d});toast("Kopie ohne Einsätze – noch nicht gespeichert")};
+
+/* ---------- export ---------- */
+function download(filename,data,mime){
+  const url=URL.createObjectURL(new Blob([data],{type:mime}));const a=document.createElement("a");
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+const offer=(f,d,m)=>{download(f,d,m);toast("Im Download-Ordner abgelegt")};
+const einTxt=e=>[e.datum,e.kunde,e.sn&&"SN "+e.sn,e.komm&&"Komm. "+e.komm,e.bem].filter(Boolean).join(", ");
+function csvCell(v){v=String(v??"");return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+$("#btnCsv").onclick=()=>{
+  const head=[...FIELDS.map(k=>LABELS[k]),"Einsätze","Isolation"];
+  const rows=records.map(r=>[...FIELDS.map(k=>r.data[k]),einsaetze(r.data).map(einTxt).join(" | "),(r.data.isolation||[]).map(x=>x.bez+": "+x.mass).join(" | ")]);
+  offer("wickeldaten.csv","﻿"+[head,...rows].map(r=>r.map(csvCell).join(";")).join("\r\n"),"text/csv");
+};
+$("#btnJson").onclick=()=>backupNow(false);$("#btnBackup").onclick=()=>backupNow(false);
+$("#btnImp").onclick=()=>$("#fileImp").click();
+$("#fileImp").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const j=JSON.parse(await f.text());const arr=Array.isArray(j)?j:j&&Array.isArray(j.records)?j.records:null;if(!arr)throw 0;let n=0;
+    for(const r of arr){if(r&&r.data&&typeof r.data==="object"){const d={};FIELDS.forEach(k=>d[k]=String(r.data[k]??""));
+      d.einsaetze=einsaetze(r.data).map(x=>{const o={};EIN.forEach(k=>o[k]=String(x[k]||""));return o});
+      d.isolation=Array.isArray(r.data.isolation)?r.data.isolation.map(x=>({bez:String(x.bez||""),mass:String(x.mass||"")})):[];
+      if(r.data.updatedAt)d.updatedAt=+r.data.updatedAt||0;
+      const id=String(r.id||newId());const i=records.findIndex(x=>x.id===id);if(i>=0)records[i]={id,data:d};else records.push({id,data:d});n++}}
+    lsSave();setMeta({dirty:0});updateStatus();renderList();toast(n+" Motoren geladen");
+  }catch(err){toast("Import fehlgeschlagen – keine gültige Backup-Datei")}
+  e.target.value="";
+};
+
+function sheetText(d){
+  const c=calc(d),L=k=>d[k]?`${LABELS[k]}: ${d[k]}`:null;
+  const g=(t,ks)=>{const x=ks.map(L).filter(Boolean);return x.length?`== ${t} ==\n`+x.join("\n"):null};
+  const e=d.einsaetze||[];
+  return [`WICKELDATEN – ${d.hersteller||""} ${d.typ||""}`.trim(),
+    g("Typenschild",["spannung","strom","leistung","drehzahl","frequenz","cosphi","schaltung","baugroesse","schild"]),
+    e.length?"== Einsätze ==\n"+e.map(einTxt).join("\n"):null,
+    g("Blechpaket",["nuten","paketL","bohrung","aussen","paketSonst"]),
+    g("Wicklung",["wdg","art","drahtN","drahtD","zweige","schritt","spGruppe","isokl","cuKg","drahtSorte"]),
+    g("Wickelmaschine",["maschine","schablone","einstellung"]),
+    (d.isolation||[]).length||d.bandage?`== Isolation ==\n`+(d.isolation||[]).map(x=>`${x.bez}: ${x.mass}`).concat(d.bandage?["Bandage: "+d.bandage]:[]).join("\n"):null,
+    `== Berechnet ==\n${isNaN(c.poles)?"":c.poles+"-polig, "}q=${fmt(c.q)}, A=${fmt(c.A,3)} mm², J=${fmt(c.J)} A/mm²`,
+    d.unklar?"UNKLAR: "+d.unklar:null,d.notizen?"Notizen: "+d.notizen:null].filter(Boolean).join("\n\n");
+}
+$("#btnCopy").onclick=async()=>{try{await navigator.clipboard.writeText(sheetText(readForm()));toast("Kopiert")}catch(e){toast("Kopieren nicht möglich")}};
+$("#btnSheet").onclick=()=>{
+  const d=readForm(),c=calc(d);
+  const tr=k=>d[k]?`<tr><th>${esc(LABELS[k])}</th><td>${esc(d[k])}</td></tr>`:"";
+  const sec=(t,ks)=>{const r=ks.map(tr).join("");return r?`<h2>${t}</h2><table>${r}</table>`:""};
+  const ein=d.einsaetze.length?`<h2>Einsätze</h2><table class="e"><tr><th>Datum</th><th>Kunde</th><th>Serien-Nr.</th><th>Komm.</th><th>Bemerkung</th></tr>${d.einsaetze.map(e=>`<tr>${EIN.map(k=>`<td>${esc(e[k])}</td>`).join("")}</tr>`).join("")}</table>`:"";
+  const html=`<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>Wickeldaten ${esc(d.hersteller)} ${esc(d.typ)}</title>
+<style>body{font:12pt Arial,sans-serif;margin:15mm;color:#000}h1{font-size:17pt;border-bottom:2px solid #000;margin:0 0 6px}h2{font-size:11pt;text-transform:uppercase;margin:12px 0 3px;border-bottom:1px solid #999}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid #bbb;padding:3px 6px;text-align:left;font-size:11pt}th{width:42%;background:#f2f2f2;font-weight:normal}table.e th{width:auto}.cols{columns:2;column-gap:10mm}.cols>div{break-inside:avoid}.u{border:1px solid #c80;padding:4px;margin-top:8px}</style></head><body>
+<h1>Wickeldaten – ${esc(d.hersteller)} ${esc(d.typ)}</h1>
+<div class="cols">
+<div>${sec("Typenschild",["spannung","strom","leistung","drehzahl","frequenz","cosphi","schaltung","baugroesse","schild"])}</div>
+<div>${sec("Blechpaket",["nuten","paketL","bohrung","aussen","paketSonst"])}</div>
+<div>${sec("Wicklung",["wdg","art","drahtN","drahtD","zweige","schritt","spGruppe","isokl","cuKg","drahtSorte"])}</div>
+<div>${sec("Wickelmaschine / Schablone",["maschine","schablone","einstellung"])}</div>
+<div>${(d.isolation||[]).length||d.bandage||d.traenkung?`<h2>Isolation / Bandage</h2><table>${(d.isolation||[]).map(x=>`<tr><th>${esc(x.bez)}</th><td>${esc(x.mass)}</td></tr>`).join("")}${tr("bandage")}${tr("traenkung")}</table>`:""}</div>
+<div><h2>Berechnet</h2><table><tr><th>Polzahl</th><td>${isNaN(c.poles)?"–":c.poles}</td></tr><tr><th>q</th><td>${fmt(c.q)}</td></tr><tr><th>Leiterquerschnitt</th><td>${fmt(c.A,3)} mm²</td></tr><tr><th>Stromdichte</th><td>${fmt(c.J)} A/mm²</td></tr></table></div>
+</div>${ein}
+${d.unklar?`<div class="u"><b>Unklar:</b> ${esc(d.unklar)}</div>`:""}
+${d.notizen?`<h2>Notizen</h2><p>${esc(d.notizen).replace(/\n/g,"<br>")}</p>`:""}
+<p style="font-size:9pt;color:#666;margin-top:14px">Erstellt ${today()}</p></body></html>`;
+  offer(("wickeldaten_"+(d.hersteller+"_"+d.typ).replace(/[^\w\-]+/g,"_")+".html").replace(/_+/g,"_"),html,"text/html");
+};
+
+/* ---------- theme ---------- */
+const THEMES=[["hell","☀ Hell"],["dunkel","☾ Dunkel"],["auto","◐ Auto"]];
+function applyTheme(t){if(!THEMES.some(x=>x[0]===t))t="hell";document.documentElement.dataset.theme=t;$("#btnTheme").textContent=THEMES.find(x=>x[0]===t)[1];try{localStorage.setItem("wickeldaten.theme",t)}catch(e){}}
+let _t="hell";try{_t=localStorage.getItem("wickeldaten.theme")||"hell"}catch(e){}applyTheme(_t);
+$("#btnTheme").onclick=()=>{const i=THEMES.findIndex(x=>x[0]===document.documentElement.dataset.theme);applyTheme(THEMES[(i+1)%3][0])};
+
+/* ---------- init ---------- */
+records=lsLoad();renderList();updateStatus();
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
