@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" data-theme="hell">
+<html lang="de" data-theme="hell" data-size="gross">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,7 +11,7 @@
 <style>
 :root{
   --bg:#f3f1ec; --card:#fff; --ink:#1b1f22; --muted:#6b7279; --line:#e2ded6; --soft:#f7f5f1;
-  --acc:#b8581a; --acc2:#93440f; --accbg:#fbeee4; --ok:#2f7a4a; --warn:#a8741a; --warnbg:#fbf2df; --err:#b23a3a;
+  --acc:#b8581a; --acc2:#93440f; --accbg:#fbeee4; --onacc:#fff; --ok:#2f7a4a; --warn:#a8741a; --warnbg:#fbf2df; --err:#b23a3a;
   --mono:ui-monospace,"Roboto Mono","DejaVu Sans Mono",monospace; --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --r:14px; --sh:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.05);
 }
@@ -23,7 +23,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--sans)}
 main{max-width:1200px;margin:0 auto;padding:20px 24px 130px}
 button{font:inherit;font-weight:500;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 16px;min-height:44px;border-radius:10px;cursor:pointer;touch-action:manipulation}
 button:hover{border-color:var(--acc)}
-button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+button.pri{background:var(--acc);border-color:var(--acc);color:var(--onacc)}
 button.pri:hover{background:var(--acc2)}
 button.ghost{background:transparent;border-color:transparent}
 button.danger{color:var(--err)}
@@ -66,7 +66,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-off
 .badge.w{color:var(--warn);background:var(--warnbg)}
 .badge.n{color:var(--acc);background:var(--accbg)}
 .empty{padding:50px 20px;text-align:center;color:var(--muted);background:var(--card);border:1px dashed var(--line);border-radius:var(--r)}
-.fab{position:fixed;right:24px;bottom:52px;min-height:58px;padding:0 22px;border-radius:16px;font-size:16px;font-weight:600;box-shadow:0 6px 20px rgba(184,88,26,.35);z-index:8}
+.fab{position:fixed;right:24px;bottom:52px;min-height:58px;padding:0 22px;border-radius:16px;font-size:16px;font-weight:600;box-shadow:0 6px 20px color-mix(in srgb,var(--acc) 35%,transparent);z-index:8}
 
 /* ---- Formular ---- */
 .formbar{position:sticky;top:0;z-index:6;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 0;margin-bottom:6px}
@@ -142,6 +142,19 @@ fieldset > textarea{width:100%}
   .ein-row .x{grid-column:2;justify-self:end}
   .grid{grid-template-columns:1fr}
 }
+html.custom-acc{--acc2:color-mix(in srgb,var(--acc) 78%,#000);--accbg:color-mix(in srgb,var(--acc) 14%,var(--card))}
+html.custom-acc[data-theme="dunkel"]{--acc2:color-mix(in srgb,var(--acc) 75%,#fff)}
+@media (prefers-color-scheme:dark){html.custom-acc[data-theme="auto"]{--acc2:color-mix(in srgb,var(--acc) 75%,#fff)}}
+html[data-size="gross"] body{zoom:1.15}
+html[data-size="sehrgross"] body{zoom:1.3}
+.swatches{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sw{width:44px;height:44px;min-height:44px;border-radius:50%;padding:0;border:3px solid var(--card);box-shadow:0 0 0 1px var(--line)}
+.sw.on{box-shadow:0 0 0 3px var(--ink)}
+input[type=color]{width:64px;height:44px;padding:2px;min-height:44px;border-radius:10px;cursor:pointer}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;border-radius:0;min-width:90px}
+.seg button.on{background:var(--acc);color:var(--onacc)}
+@media (min-width:761px){#frm{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -305,7 +318,14 @@ fieldset > textarea{width:100%}
       </fieldset>
       <fieldset>
         <legend>Darstellung</legend>
+        <div class="dlab" style="margin-bottom:6px">Hell / Dunkel</div>
         <div class="drow-btns"><button id="btnTheme" type="button">☀ Hell</button></div>
+        <div class="dlab" style="margin:14px 0 6px">Schriftgröße</div>
+        <div class="seg" id="sizeSeg"><button type="button" data-s="normal">Normal</button><button type="button" data-s="gross">Groß</button><button type="button" data-s="sehrgross">Sehr groß</button></div>
+        <div class="dlab" style="margin:14px 0 6px">Akzentfarbe</div>
+        <div class="swatches" id="swatches"></div>
+        <div class="swatches" style="margin-top:8px"><input type="color" id="accPick" title="Eigene Farbe"><button type="button" id="accReset">Zurück auf Standard</button></div>
+        <div class="hint">Gilt nur für dieses Gerät.</div>
       </fieldset>
     </div>
   </section>
@@ -323,7 +343,7 @@ fieldset > textarea{width:100%}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="1.3"; // bei jedem Update erhöhen – auch in sw.js
+const APP_VERSION="1.4"; // bei jedem Update erhöhen – auch in sw.js
 const FIELDS=["hersteller","typ","spannung","strom","leistung","drehzahl","nuten","schaltung","frequenz","schild",
 "ausladung","paketL","aussen",
 "cuKg","art","schritt","beschaltung","isokl",
@@ -826,6 +846,30 @@ const THEMES=[["hell","☀ Hell"],["dunkel","☾ Dunkel"],["auto","◐ Auto"]];
 function applyTheme(t){if(!THEMES.some(x=>x[0]===t))t="hell";document.documentElement.dataset.theme=t;$("#btnTheme").textContent=THEMES.find(x=>x[0]===t)[1];try{localStorage.setItem("wickeldaten.theme",t)}catch(e){}}
 let _t="hell";try{_t=localStorage.getItem("wickeldaten.theme")||"hell"}catch(e){}applyTheme(_t);
 $("#btnTheme").onclick=()=>{const i=THEMES.findIndex(x=>x[0]===document.documentElement.dataset.theme);applyTheme(THEMES[(i+1)%3][0])};
+
+/* ---------- Schriftgröße & Akzentfarbe ---------- */
+const DEF_ACC="#b8581a";
+const PRESETS=["#b8581a","#1f6fb2","#2f7a4a","#b23a3a","#7a3fb0","#0f8a8a","#c79100","#4a5560"];
+function lum(hex){const n=parseInt(hex.slice(1),16),c=[n>>16&255,n>>8&255,n&255].map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]}
+function applyAccent(hex){
+  const r=document.documentElement;
+  if(!/^#[0-9a-f]{6}$/i.test(hex||""))hex=DEF_ACC;
+  if(hex.toLowerCase()===DEF_ACC){r.classList.remove("custom-acc");r.style.removeProperty("--acc");r.style.removeProperty("--onacc")}
+  else{r.classList.add("custom-acc");r.style.setProperty("--acc",hex);r.style.setProperty("--onacc",lum(hex)>0.45?"#111":"#fff")}
+  const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=hex;
+  try{localStorage.setItem("wickeldaten.acc",hex)}catch(e){}
+  $("#accPick").value=hex;
+  document.querySelectorAll(".sw").forEach(b=>b.classList.toggle("on",b.dataset.c.toLowerCase()===hex.toLowerCase()));
+}
+$("#swatches").innerHTML=PRESETS.map(c=>`<button type="button" class="sw" data-c="${c}" style="background:${c}" title="${c}"></button>`).join("");
+document.querySelectorAll(".sw").forEach(b=>b.onclick=()=>applyAccent(b.dataset.c));
+$("#accPick").addEventListener("input",e=>applyAccent(e.target.value));
+$("#accReset").onclick=()=>applyAccent(DEF_ACC);
+function applySize(sz){if(!["normal","gross","sehrgross"].includes(sz))sz="gross";document.documentElement.dataset.size=sz;
+  document.querySelectorAll("#sizeSeg button").forEach(b=>b.classList.toggle("on",b.dataset.s===sz));try{localStorage.setItem("wickeldaten.size",sz)}catch(e){}}
+document.querySelectorAll("#sizeSeg button").forEach(b=>b.onclick=()=>applySize(b.dataset.s));
+let _acc=DEF_ACC,_sz="gross";try{_acc=localStorage.getItem("wickeldaten.acc")||DEF_ACC;_sz=localStorage.getItem("wickeldaten.size")||"gross"}catch(e){}
+applyAccent(_acc);applySize(_sz);
 
 /* ---------- init ---------- */
 $("#ver").textContent="Wickeldaten v"+APP_VERSION;

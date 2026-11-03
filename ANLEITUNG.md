@@ -78,6 +78,10 @@ Ohne PIN ist Löschen gesperrt. Nach der Eingabe bleibt die PIN 5 Minuten gülti
 **PIN vergessen:** Chrome → Website-Einstellungen → Daten der App löschen, App neu öffnen, letzte Sicherung laden.
 Das ist ein Bedienschutz gegen Versehen, keine echte Sicherheit.
 
-## 6. Excel
+## 6. Darstellung
+
+⚙ Einstellungen → Darstellung: Hell/Dunkel, Schriftgröße (Normal / Groß / Sehr groß, Standard: Groß) und Akzentfarbe (Schnellfarben oder eigene Farbe). Gilt jeweils nur für das Gerät.
+
+## 7. Excel
 
 ⚙ Einstellungen → „Alle als CSV (Excel)“: Trennzeichen Semikolon, Umlaute korrekt, öffnet direkt in Excel.
