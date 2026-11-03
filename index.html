@@ -280,8 +280,7 @@ input[type=color]{width:64px;height:44px;padding:2px;min-height:44px;border-radi
           <label>Schritt / Spulenweite<input name="schritt" placeholder="z. B. 1–12"></label>
           <label>Beschaltung<select name="beschaltung"><option value="">–</option><option>Reihe</option><option>Parallel</option></select></label>
           <label>Isolierstoffklasse<select name="isokl"><option value="">–</option><option>B</option><option>F</option><option>H</option></select></label>
-          <label>Korb<input name="korb"></label>
-          <label>Etagen<input name="etagen"></label>
+          <label>Wickelkopf<select name="wkopf"><option value="">–</option><option>Korb</option><option>Etagen</option></select></label>
         </div>
       </fieldset>
 
@@ -377,6 +376,8 @@ input[type=color]{width:64px;height:44px;padding:2px;min-height:44px;border-radi
           <button id="btnImp" type="button">Sicherung laden 🔒</button>
           <button id="btnCsv" type="button">Alle als CSV (Excel)</button>
         </div>
+        <div class="drow-btns" style="margin-top:10px"><button class="pri" id="btnFull" type="button">💾 Komplett-Export für USB-Stick</button></div>
+        <div class="hint">Eine ZIP mit allen Motoren, allen Fotos und der CSV. Landet im Download-Ordner → mit der App „Dateien“ auf den Stick kopieren (lange drücken → Kopieren → USB-Laufwerk). Laden: „Sicherung laden“ → die ZIP auswählen.</div>
         <div class="hint">Sicherung laden: JSON und alle Foto-ZIPs auf einmal auswählen.</div>
       </fieldset>
       <fieldset>
@@ -387,7 +388,9 @@ input[type=color]{width:64px;height:44px;padding:2px;min-height:44px;border-radi
         <div class="seg" id="sizeSeg"><button type="button" data-s="normal">Normal</button><button type="button" data-s="gross">Groß</button><button type="button" data-s="sehrgross">Sehr groß</button></div>
         <div class="dlab" style="margin:14px 0 6px">Akzentfarbe</div>
         <div class="swatches" id="swatches"></div>
-        <div class="hint">Nur Farben, die hell und dunkel gut lesbar sind. Gilt nur für dieses Gerät.</div>
+        <div class="swatches" style="margin-top:10px"><label class="addfile" style="gap:8px;align-items:center;font-size:14px">Eigene Farbe <input type="color" id="accPick"></label><button type="button" id="accReset">Zurück auf Standard</button></div>
+        <div class="sub warn hidden" id="accWarn" style="margin-top:6px"></div>
+        <div class="hint">Die runden Farben sind hell und dunkel gut lesbar. Gilt nur für dieses Gerät.</div>
       </fieldset>
     </div>
   </section>
@@ -405,23 +408,23 @@ input[type=color]{width:64px;height:44px;padding:2px;min-height:44px;border-radi
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="1.5"; // bei jedem Update erhöhen – auch in sw.js
+const APP_VERSION="1.6"; // bei jedem Update erhöhen – auch in sw.js
 const FIELDS=["hersteller","typ","spannung","strom","leistung","drehzahl","nuten","schaltung","frequenz","schild",
 "ausladung","paketL","aussen",
-"cuKg","art","schritt","beschaltung","isokl","korb","etagen",
+"cuKg","art","schritt","beschaltung","isokl","wkopf",
 "backenGr","dach","holz",
 "nutisoL","nutisoB","nutisoF","zwdL","zwdB","zwdF",
 "tkTyp","tkAnz","tkTemp","tfTyp","tfAnz","tfTemp","notizen"];
 const LABELS={hersteller:"Firmen Name",typ:"Typ",spannung:"Spannung [V]",strom:"Strom [A]",leistung:"Leistung [kW/PS]",drehzahl:"Drehzahl [U/min]",nuten:"Nuten",schaltung:"Schaltung",frequenz:"Frequenz [Hz]",schild:"Schild sonst.",
 ausladung:"Ausladung",paketL:"Länge",aussen:"Durchmesser",
-wdgs:"Windungen",cuKg:"Gewicht [kg]",drahte:"Draht",art:"Wicklungsart",schritt:"Schritt",beschaltung:"Beschaltung",isokl:"Isolierklasse",korb:"Korb",etagen:"Etagen",
+wdgs:"Windungen",cuKg:"Gewicht [kg]",drahte:"Draht",art:"Wicklungsart",schritt:"Schritt",beschaltung:"Beschaltung",isokl:"Isolierklasse",wkopf:"Wickelkopf",
 abst:"Abstand Backen",backenGr:"Backen Größe",kammern:"Backen Kammern",dach:"Dach",holz:"Holz",
 nutiso:"Nutenisolation",zwd:"Zwischendach",nutisoL:"Nutenisolation Länge",nutisoB:"Nutenisolation Breite",nutisoF:"Nutenisolation Falz",zwdL:"Zwischendach Länge",zwdB:"Zwischendach Breite",zwdF:"Zwischendach Falz",
 tk:"Thermokontakt",tf:"Thermofühler",tkTyp:"Thermokontakt Typ",tkAnz:"Thermokontakt Anzahl",tkTemp:"Thermokontakt °C",tfTyp:"Thermofühler Typ",tfAnz:"Thermofühler Anzahl",tfTemp:"Thermofühler °C",
 bsb:"Blockschaltbild",notizen:"Zusatzbemerkungen"};
 const SECTIONS=[["Motor · Kenndaten",["spannung","strom","leistung","drehzahl","nuten","schaltung","frequenz","schild"]],
 ["Abmessungen",["ausladung","paketL","aussen"]],
-["Wicklungsdaten & Drahtangaben",["wdgs","cuKg","drahte","art","schritt","beschaltung","isokl","korb","etagen"]],
+["Wicklungsdaten & Drahtangaben",["wdgs","cuKg","drahte","art","schritt","beschaltung","isokl","wkopf"]],
 ["Wickelmaschine (Odimat 2100)",["abst","backenGr","kammern"]],
 ["Isolation",["nutiso","zwd"]],
 ["Thermoschutz",["tk","tf"]],
@@ -430,6 +433,7 @@ const ART_MAP={"Einschicht konzentrisch":"Einschicht ungleiche Weite","Einschich
 function migrate(d){
   if(!d||typeof d!=="object")return d;
   if(ART_MAP[d.art])d.art=ART_MAP[d.art];
+  if(!d.wkopf&&(d.korb||d.etagen))d.wkopf=d.korb?"Korb":"Etagen";
   if(!Array.isArray(d.abst))d.abst=d.schablone?[String(d.schablone)]:[];
   if(!Array.isArray(d.kammern))d.kammern=d.backenKa?[String(d.backenKa)]:[];
   if(d.nutiso&&!d.nutisoL)d.nutisoL=d.nutiso;
@@ -903,14 +907,16 @@ async function backupPhotos(){
   for(const f of fs){f.backedUp=true;await putFile(f)}
   return fs.length;
 }
-async function restorePhotos(file){
-  const ents=readZip(await file.arrayBuffer());let n=0;
+async function restoreZip(file){
+  const ents=readZip(await file.arrayBuffer());let n=0,m=0;
   for(const e of ents){
-    const m=e.name.match(/^(f[\w]+)__([\w\-.~:@+]+)__(\d+)__(.+)$/);if(!m)continue;
-    const type=/\.pdf$/i.test(m[4])?"application/pdf":"image/jpeg";
-    await putFile({id:m[1],motor:m[2],created:+m[3],name:m[4],type,backedUp:true,blob:new Blob([e.data],{type})});n++;
+    if(/\.json$/i.test(e.name)){try{m+=importRecords(JSON.parse(new TextDecoder().decode(e.data)))}catch(err){}continue}
+    const base=e.name.replace(/^fotos\//,"");
+    const mm=base.match(/^(f[\w]+)__([\w\-.~:@+]+)__(\d+)__(.+)$/);if(!mm)continue;
+    const type=/\.pdf$/i.test(mm[4])?"application/pdf":"image/jpeg";
+    await putFile({id:mm[1],motor:mm[2],created:+mm[3],name:mm[4],type,backedUp:true,blob:new Blob([e.data],{type})});n++;
   }
-  await loadCounts();return n;
+  await loadCounts();return {motoren:m,dateien:n};
 }
 async function pendingPhotos(){try{return (await allFiles()).filter(f=>!f.backedUp).length}catch(e){return 0}}
 
@@ -973,31 +979,55 @@ const val=(d,k)=>{switch(k){
   case "bsb":return bsbTxt(d.bsb);
   default:return d[k]??""}};
 function csvCell(v){v=String(v??"");return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
-$("#btnCsv").onclick=()=>{
+function csvText(){
   const head=[...FIELDS.map(k=>LABELS[k]),"Windungen","Draht","Abstand Backen","Backen Kammern","Blockschaltbild","Einsätze"];
   const rows=records.map(r=>[...FIELDS.map(k=>r.data[k]),val(r.data,"wdgs"),drahtTxt(drahte(r.data)),val(r.data,"abst"),val(r.data,"kammern"),val(r.data,"bsb"),einsaetze(r.data).map(einTxt).join(" | ")]);
-  offer("wickeldaten.csv","﻿"+[head,...rows].map(r=>r.map(csvCell).join(";")).join("\r\n"),"text/csv");
-};
+  return "\uFEFF"+[head,...rows].map(r=>r.map(csvCell).join(";")).join("\r\n");
+}
+$("#btnCsv").onclick=()=>offer("wickeldaten.csv",csvText(),"text/csv");
 $("#btnJson").onclick=()=>backupNow(false);$("#btnBackup").onclick=()=>backupNow(false);
 $("#btnImp").onclick=async()=>{if(await requirePin("Sicherung laden",true))$("#fileImp").click()};
+function importRecords(j){
+  const arr=Array.isArray(j)?j:j&&Array.isArray(j.records)?j.records:null;if(!arr)throw new Error("format");let n=0;
+  for(const r of arr){if(r&&r.data&&typeof r.data==="object"){migrate(r.data);const d={};FIELDS.forEach(k=>d[k]=String(r.data[k]??""));
+    d.einsaetze=einsaetze(r.data).map(x=>{const o={};EIN.forEach(k=>o[k]=String(x[k]||""));return o});
+    d.drahte=drahte(r.data).map(x=>({n:String(x.n||""),d:String(x.d||"")}));
+    d.wdgs=wdgs(r.data).map(x=>({w:String(x.w||""),bem:String(x.bem||"")}));
+    d.abst=(r.data.abst||[]).map(String);d.kammern=(r.data.kammern||[]).map(String);
+    if(r.data.bsb&&typeof r.data.bsb==="object")d.bsb=JSON.parse(JSON.stringify(r.data.bsb));
+    if(r.data.updatedAt)d.updatedAt=+r.data.updatedAt||0;
+    const id=String(r.id||newId());const i=records.findIndex(x=>x.id===id);if(i>=0)records[i]={id,data:d};else records.push({id,data:d});n++}}
+  lsSave();return n;
+}
 $("#fileImp").onchange=async e=>{
+  let nm=0,nf=0;
   for(const f of e.target.files){
-  if(/\.zip$/i.test(f.name)){try{const n=await restorePhotos(f);toast(n+" Fotos/Dateien geladen");renderList()}catch(err){toast("ZIP konnte nicht gelesen werden")}continue}
-  try{
-    const j=JSON.parse(await f.text());const arr=Array.isArray(j)?j:j&&Array.isArray(j.records)?j.records:null;if(!arr)throw 0;let n=0;
-    for(const r of arr){if(r&&r.data&&typeof r.data==="object"){const d={};FIELDS.forEach(k=>d[k]=String(r.data[k]??""));
-      d.einsaetze=einsaetze(r.data).map(x=>{const o={};EIN.forEach(k=>o[k]=String(x[k]||""));return o});
-      d.drahte=drahte(r.data).map(x=>({n:String(x.n||""),d:String(x.d||"")}));
-      d.wdgs=wdgs(r.data).map(x=>({w:String(x.w||""),bem:String(x.bem||"")}));
-      migrate(r.data);d.abst=(r.data.abst||[]).map(String);d.kammern=(r.data.kammern||[]).map(String);
-      if(r.data.bsb&&typeof r.data.bsb==="object")d.bsb=JSON.parse(JSON.stringify(r.data.bsb));if(ART_MAP[d.art])d.art=ART_MAP[d.art];
-      if(r.data.updatedAt)d.updatedAt=+r.data.updatedAt||0;
-      const id=String(r.id||newId());const i=records.findIndex(x=>x.id===id);if(i>=0)records[i]={id,data:d};else records.push({id,data:d});n++}}
-    lsSave();setMeta({dirty:0});updateStatus();renderList();toast(n+" Motoren geladen");
-  }catch(err){toast("Import fehlgeschlagen – keine gültige Backup-Datei")}
+    try{
+      if(/\.zip$/i.test(f.name)){const r=await restoreZip(f);nm+=r.motoren;nf+=r.dateien}
+      else{nm+=importRecords(JSON.parse(await f.text()))}
+    }catch(err){toast(f.name+": konnte nicht gelesen werden");}
   }
+  setMeta({dirty:0});updateStatus();await loadCounts();renderList();
+  if(nm||nf)toast(`${nm} Motoren, ${nf} Fotos/Dateien geladen`);
   e.target.value="";
 };
+
+/* ---------- Komplett-Export (für USB-Stick) ---------- */
+async function fullExport(){
+  const enc=new TextEncoder(),entries=[];
+  const payload={app:"wickeldaten",format:1,version:APP_VERSION,erstellt:new Date().toISOString(),anzahl:records.length,records};
+  entries.push({name:"wickeldaten-backup.json",data:enc.encode(JSON.stringify(payload,null,1))});
+  entries.push({name:"wickeldaten.csv",data:enc.encode(csvText())});
+  let fs=[];try{fs=await allFiles()}catch(e){}
+  for(const f of fs){const safe=f.name.replace(/[^\w.\-äöüÄÖÜß]+/g,"_");
+    entries.push({name:`fotos/${f.id}__${f.motor}__${f.created}__${safe}`,data:new Uint8Array(await f.blob.arrayBuffer())})}
+  const now=new Date(),stamp=isoDay(now)+"-"+String(now.getHours()).padStart(2,"0")+String(now.getMinutes()).padStart(2,"0");
+  const url=URL.createObjectURL(makeZip(entries));const a=document.createElement("a");a.href=url;a.download=`wickeldaten-komplett-${stamp}.zip`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),20000);
+  for(const f of fs){if(!f.backedUp){f.backedUp=true;await putFile(f)}}
+  setMeta({last:Date.now(),dirty:0});updateStatus();
+  toast(`Komplett-Export: ${records.length} Motoren, ${fs.length} Dateien – im Download-Ordner`);
+}
+$("#btnFull").onclick=()=>fullExport().catch(()=>toast("Export fehlgeschlagen"));
 
 function sheetText(d){
   const c=calc(d),L=k=>val(d,k)?`${LABELS[k]}: ${val(d,k)}`:null;
@@ -1038,18 +1068,26 @@ $("#btnTheme").onclick=()=>{const i=THEMES.findIndex(x=>x[0]===document.document
 /* ---------- Schriftgröße & Akzentfarbe ---------- */
 const PRESETS=[["std","Standard (Kupfer)"],["#3a8fd6","Blau"],["#3a9a5b","Grün"],["#e05a52","Rot"],["#a578e0","Violett"],["#17a19e","Türkis"],["#de5a95","Pink"],["#c09015","Gold"]];
 function lum(hex){const n=parseInt(hex.slice(1),16),c=[n>>16&255,n>>8&255,n&255].map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]}
+function crOf(a,b){const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)}
 function applyAccent(c){
   const r=document.documentElement;
-  if(!PRESETS.some(p=>p[0]===c))c="std";
+  if(!PRESETS.some(p=>p[0]===c)&&!/^#[0-9a-f]{6}$/i.test(c||""))c="std";
   if(c==="std"){r.classList.remove("custom-acc");r.style.removeProperty("--acc");r.style.removeProperty("--onacc")}
   else{const L=lum(c),cw=1.05/(L+.05),cb=(L+.05)/(lum("#111111")+.05);
     r.classList.add("custom-acc");r.style.setProperty("--acc",c);r.style.setProperty("--onacc",cb>cw?"#111":"#fff")}
   const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=c==="std"?"#b8581a":c;
   try{localStorage.setItem("wickeldaten.acc",c)}catch(e){}
   document.querySelectorAll(".sw").forEach(b=>b.classList.toggle("on",b.dataset.c===c));
+  const pk=$("#accPick");if(pk)pk.value=c==="std"?"#b8581a":c;
+  const w=$("#accWarn");if(w){let msg="";
+    if(c!=="std"&&!PRESETS.some(p=>p[0]===c)){const d=crOf(c,"#1e2124"),l=crOf(c,"#ffffff");
+      if(d<3.5)msg="⚠ Schlecht lesbar im Dunkelmodus.";else if(l<2.5)msg="⚠ Schlecht lesbar im hellen Modus.";}
+    w.textContent=msg;w.classList.toggle("hidden",!msg)}
 }
 $("#swatches").innerHTML=PRESETS.map(([c,n])=>`<button type="button" class="sw" data-c="${c}" style="background:${c==="std"?"#c8641f":c}" title="${n}"></button>`).join("");
 document.querySelectorAll(".sw").forEach(b=>b.onclick=()=>applyAccent(b.dataset.c));
+$("#accPick").addEventListener("input",e=>applyAccent(e.target.value.toLowerCase()));
+$("#accReset").onclick=()=>applyAccent("std");
 function applySize(sz){if(!["normal","gross","sehrgross"].includes(sz))sz="gross";document.documentElement.dataset.size=sz;
   document.querySelectorAll("#sizeSeg button").forEach(b=>b.classList.toggle("on",b.dataset.s===sz));try{localStorage.setItem("wickeldaten.size",sz)}catch(e){}}
 document.querySelectorAll("#sizeSeg button").forEach(b=>b.onclick=()=>applySize(b.dataset.s));

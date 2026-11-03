@@ -51,6 +51,14 @@ Im Download-Ordner auf dem Tablet ist bereits ein Ignorier-Muster eingetragen. E
 Syncthing-Fork → Ordner „Download“ → Ignorier-Muster bearbeiten → speichern.
 Danach kommen die Wickeldaten-Sicherungen im selben Container auf betzendorf an und werden über den Proxmox-Backup-Job mitgesichert.
 
+
+### Komplett-Export auf USB-Stick
+
+⚙ Einstellungen → „💾 Komplett-Export für USB-Stick“: eine ZIP mit allen Motoren, allen Fotos/PDFs und der CSV (`wickeldaten-komplett-JJJJ-MM-TT-HHMM.zip`).
+1. Stick per USB-C (ggf. Adapter) anstecken.
+2. App „Dateien“ öffnen → Downloads → die ZIP lange drücken → ⋮ → „Kopieren nach“ → USB-Laufwerk.
+Zurückladen: Stick anstecken → ⚙ Einstellungen → „Sicherung laden“ → ZIP vom Stick auswählen.
+
 ### Wiederherstellen
 
 Neueste `wickeldaten-backup-….json` **und alle** `wickeldaten-fotos-….zip` aufs Tablet kopieren → App → ⚙ Einstellungen → „Sicherung laden“ (PIN) → alle Dateien auf einmal auswählen.
