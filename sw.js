@@ -1,5 +1,5 @@
 // Wickeldaten – Offline-Cache. Bei jedem Update VERSION hochzählen (gleiche Nummer wie APP_VERSION in index.html).
-const VERSION = "wickeldaten-1.4";
+const VERSION = "wickeldaten-1.5";
 const FILES = ["./", "index.html", "manifest.json", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {

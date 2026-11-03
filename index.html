@@ -154,6 +154,35 @@ input[type=color]{width:64px;height:44px;padding:2px;min-height:44px;border-radi
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .seg button{border:0;border-radius:0;min-width:90px}
 .seg button.on{background:var(--acc);color:var(--onacc)}
+.tgrid{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:8px 8px;align-items:center}
+.tgrid .th{font-size:12px;color:var(--muted);font-weight:500}
+.tgrid .tl{font-size:14px;font-weight:500;padding-right:6px}
+.tgrid input,.tgrid select{font-family:var(--mono);font-size:15px;min-width:0}
+.vrow{display:grid;grid-template-columns:1fr 44px;gap:6px}
+.vrow input{font-family:var(--mono);font-size:15px}
+.bsb-bar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.bsb-n{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-weight:500}
+.bsb-n input{width:80px;font-family:var(--mono)}
+.bsb-wrap{overflow-x:auto;background:var(--soft);border:1px solid var(--line);border-radius:10px}
+#bsb{display:block;touch-action:manipulation}
+#bsb .coil{fill:var(--card);stroke:var(--ink);stroke-width:2}
+#bsb .inner{stroke:var(--muted);stroke-width:1.5;fill:none}
+#bsb .lead{stroke:var(--ink);stroke-width:2}
+#bsb .term{fill:var(--card);stroke:var(--ink);stroke-width:2;cursor:pointer}
+#bsb .term.sel{fill:var(--acc);stroke:var(--acc)}
+#bsb .term.used{fill:var(--ink)}
+#bsb .hit{fill:transparent;cursor:pointer}
+#bsb .conn{fill:none;stroke:var(--acc);stroke-width:3;stroke-linejoin:round}
+#bsb .connhit{fill:none;stroke:transparent;stroke-width:16;cursor:pointer}
+#bsb .conn.armed{stroke:var(--err);stroke-dasharray:6 4}
+#bsb text{font-family:var(--mono);fill:var(--ink)}
+#bsb .strand{font:700 18px var(--sans);fill:var(--acc)}
+#bsb .lbl{font-size:13px;font-weight:600}
+#bsb .cnum{font-size:11px;fill:var(--muted)}
+.bsb-tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px;font-size:14px}
+.bsb-tools button{min-height:40px;padding:6px 12px;font-family:var(--mono)}
+.bsb-tools input{width:110px;min-height:40px}
+#viewForm .fab{z-index:9}
 @media (min-width:761px){#frm{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -189,6 +218,7 @@ input[type=color]{width:64px;height:44px;padding:2px;min-height:44px;border-radi
       <span class="meta" id="meta"></span>
     </div>
     <div class="formtitle" id="formTitle"></div>
+    <button class="pri fab" id="fabSave" type="button">💾 Speichern</button>
     <form id="frm" class="grid" autocomplete="off" onsubmit="return false">
       <fieldset>
         <legend>Motor · Kenndaten</legend>
@@ -246,10 +276,12 @@ input[type=color]{width:64px;height:44px;padding:2px;min-height:44px;border-radi
             <div id="splitBox" class="splitbox hidden"></div>
             <div class="hint" id="drahtSum"></div>
           </div>
-          <label>Wicklungsart<select name="art"><option value="">–</option><option>Einschicht konzentrisch</option><option>Einschicht Gleichspulen</option><option>Zweischicht</option><option>2 Schicht gleiche Weite</option><option>Korbwicklung</option><option>Sonstige</option></select></label>
+          <label class="w">Wicklungsart<select name="art"><option value="">–</option><option>Einschicht gleiche Weite</option><option>Einschicht ungleiche Weite</option><option>Zweischicht gleiche Weite</option><option>Zweischicht ungleiche Weite</option><option>Sonstige</option></select></label>
           <label>Schritt / Spulenweite<input name="schritt" placeholder="z. B. 1–12"></label>
           <label>Beschaltung<select name="beschaltung"><option value="">–</option><option>Reihe</option><option>Parallel</option></select></label>
           <label>Isolierstoffklasse<select name="isokl"><option value="">–</option><option>B</option><option>F</option><option>H</option></select></label>
+          <label>Korb<input name="korb"></label>
+          <label>Etagen<input name="etagen"></label>
         </div>
       </fieldset>
 
@@ -257,10 +289,17 @@ input[type=color]{width:64px;height:44px;padding:2px;min-height:44px;border-radi
       <fieldset>
         <legend>Wickelmaschine (Odimat 2100)</legend>
         <div class="f">
-
-          <label>Abstand Backen<input name="schablone"></label>
-          <label>Backen Größe<input name="backenGr"></label>
-          <label>Backen Kammern<input name="backenKa"></label>
+          <div class="drahtbox">
+            <div class="dlab">Abstand Backen</div>
+            <div id="abstList"></div>
+            <div class="drow-btns"><button type="button" id="abstAdd">+ Abstand</button></div>
+          </div>
+          <div class="drahtbox">
+            <div class="dlab">Backen Kammern</div>
+            <div id="kamList"></div>
+            <div class="drow-btns"><button type="button" id="kamAdd">+ Kammern</button></div>
+          </div>
+          <label class="w">Backen Größe<input name="backenGr"></label>
         </div>
       </fieldset>
 
@@ -269,13 +308,37 @@ input[type=color]{width:64px;height:44px;padding:2px;min-height:44px;border-radi
         <div class="f">
           <label>Dach<input name="dach"></label>
           <label>Holz<input name="holz"></label>
-          <label>Nuten-Isolation<input name="nutiso"></label>
-          <label>Zwischendächer<input name="zwischendach"></label>
         </div>
       </fieldset>
       </div>
 
+      <fieldset>
+        <legend>Isolation</legend>
+        <div class="tgrid">
+          <div></div><div class="th">Länge</div><div class="th">Breite</div><div class="th">Falz</div>
+          <div class="tl">Nutenisolation</div><input name="nutisoL" inputmode="decimal"><input name="nutisoB" inputmode="decimal"><input name="nutisoF" inputmode="decimal">
+          <div class="tl">Zwischendach</div><input name="zwdL" inputmode="decimal"><input name="zwdB" inputmode="decimal"><input name="zwdF" inputmode="decimal">
+        </div>
+      </fieldset>
 
+      <fieldset>
+        <legend>Thermoschutz</legend>
+        <div class="tgrid">
+          <div></div><div class="th">Typ</div><div class="th">Anzahl</div><div class="th">Temp. °C</div>
+          <div class="tl">Thermokontakt</div><select name="tkTyp"><option value="">–</option><option>Öffner</option><option>Schließer</option></select><input name="tkAnz" inputmode="numeric"><input name="tkTemp" inputmode="numeric">
+          <div class="tl">Thermofühler</div><select name="tfTyp"><option value="">–</option><option>PTC (Kaltleiter)</option><option>KTY</option><option>PT100</option><option>PT1000</option><option>Sonstige</option></select><input name="tfAnz" inputmode="numeric"><input name="tfTemp" inputmode="numeric">
+        </div>
+      </fieldset>
+
+      <fieldset class="full">
+        <legend>Blockschaltbild</legend>
+        <div class="bsb-bar">
+          <label class="bsb-n">Spulen je Strang <input id="bsbN" type="number" min="1" max="12" inputmode="numeric"></label>
+          <span class="sub" id="bsbHint">Ende antippen, dann ein zweites Ende → verbinden. Verbindung antippen → löschen.</span>
+        </div>
+        <div class="bsb-wrap"><svg id="bsb" xmlns="http://www.w3.org/2000/svg"></svg></div>
+        <div class="bsb-tools hidden" id="bsbTools"></div>
+      </fieldset>
 
       <fieldset class="full">
         <legend>Zusatzbemerkungen / handschriftliche Vermerke</legend>
@@ -324,8 +387,7 @@ input[type=color]{width:64px;height:44px;padding:2px;min-height:44px;border-radi
         <div class="seg" id="sizeSeg"><button type="button" data-s="normal">Normal</button><button type="button" data-s="gross">Groß</button><button type="button" data-s="sehrgross">Sehr groß</button></div>
         <div class="dlab" style="margin:14px 0 6px">Akzentfarbe</div>
         <div class="swatches" id="swatches"></div>
-        <div class="swatches" style="margin-top:8px"><input type="color" id="accPick" title="Eigene Farbe"><button type="button" id="accReset">Zurück auf Standard</button></div>
-        <div class="hint">Gilt nur für dieses Gerät.</div>
+        <div class="hint">Nur Farben, die hell und dunkel gut lesbar sind. Gilt nur für dieses Gerät.</div>
       </fieldset>
     </div>
   </section>
@@ -343,20 +405,39 @@ input[type=color]{width:64px;height:44px;padding:2px;min-height:44px;border-radi
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION="1.4"; // bei jedem Update erhöhen – auch in sw.js
+const APP_VERSION="1.5"; // bei jedem Update erhöhen – auch in sw.js
 const FIELDS=["hersteller","typ","spannung","strom","leistung","drehzahl","nuten","schaltung","frequenz","schild",
 "ausladung","paketL","aussen",
-"cuKg","art","schritt","beschaltung","isokl",
-"schablone","backenGr","backenKa","dach","holz","nutiso","zwischendach","notizen"];
-const LABELS={wdgs:"Windungen",backenGr:"Backen Größe",backenKa:"Backen Kammern",hersteller:"Firmen Name",typ:"Typ",spannung:"Spannung [V]",strom:"Strom [A]",leistung:"Leistung [kW/PS]",drehzahl:"Drehzahl [U/min]",nuten:"Nuten",schaltung:"Schaltung",frequenz:"Frequenz [Hz]",cosphi:"cos φ",baugroesse:"Baugröße",schild:"Schild sonst.",
+"cuKg","art","schritt","beschaltung","isokl","korb","etagen",
+"backenGr","dach","holz",
+"nutisoL","nutisoB","nutisoF","zwdL","zwdB","zwdF",
+"tkTyp","tkAnz","tkTemp","tfTyp","tfAnz","tfTemp","notizen"];
+const LABELS={hersteller:"Firmen Name",typ:"Typ",spannung:"Spannung [V]",strom:"Strom [A]",leistung:"Leistung [kW/PS]",drehzahl:"Drehzahl [U/min]",nuten:"Nuten",schaltung:"Schaltung",frequenz:"Frequenz [Hz]",schild:"Schild sonst.",
 ausladung:"Ausladung",paketL:"Länge",aussen:"Durchmesser",
-wdg:"Windungen",cuKg:"Gewicht [kg]",drahte:"Draht",art:"Wicklungsart",schritt:"Schritt",beschaltung:"Beschaltung",isokl:"Isolierklasse",
-maschine:"Wickelmaschine",schablone:"Abstand Backen",code:"Code",dach:"Dach",holz:"Holz",nutiso:"Nuten-Isolation",zwischendach:"Zwischendächer",bandage:"Bandage",notizen:"Zusatzbemerkungen"};
+wdgs:"Windungen",cuKg:"Gewicht [kg]",drahte:"Draht",art:"Wicklungsart",schritt:"Schritt",beschaltung:"Beschaltung",isokl:"Isolierklasse",korb:"Korb",etagen:"Etagen",
+abst:"Abstand Backen",backenGr:"Backen Größe",kammern:"Backen Kammern",dach:"Dach",holz:"Holz",
+nutiso:"Nutenisolation",zwd:"Zwischendach",nutisoL:"Nutenisolation Länge",nutisoB:"Nutenisolation Breite",nutisoF:"Nutenisolation Falz",zwdL:"Zwischendach Länge",zwdB:"Zwischendach Breite",zwdF:"Zwischendach Falz",
+tk:"Thermokontakt",tf:"Thermofühler",tkTyp:"Thermokontakt Typ",tkAnz:"Thermokontakt Anzahl",tkTemp:"Thermokontakt °C",tfTyp:"Thermofühler Typ",tfAnz:"Thermofühler Anzahl",tfTemp:"Thermofühler °C",
+bsb:"Blockschaltbild",notizen:"Zusatzbemerkungen"};
 const SECTIONS=[["Motor · Kenndaten",["spannung","strom","leistung","drehzahl","nuten","schaltung","frequenz","schild"]],
 ["Abmessungen",["ausladung","paketL","aussen"]],
-["Wicklungsdaten & Drahtangaben",["wdgs","cuKg","drahte","art","schritt","beschaltung","isokl"]],
-["Wickelmaschine (Odimat 2100)",["schablone","backenGr","backenKa"]],
-["Zusatzangaben",["dach","holz","nutiso","zwischendach"]]];
+["Wicklungsdaten & Drahtangaben",["wdgs","cuKg","drahte","art","schritt","beschaltung","isokl","korb","etagen"]],
+["Wickelmaschine (Odimat 2100)",["abst","backenGr","kammern"]],
+["Isolation",["nutiso","zwd"]],
+["Thermoschutz",["tk","tf"]],
+["Zusatzangaben",["dach","holz"]]];
+const ART_MAP={"Einschicht konzentrisch":"Einschicht ungleiche Weite","Einschicht Gleichspulen":"Einschicht gleiche Weite","Zweischicht":"Zweischicht ungleiche Weite","2 Schicht gleiche Weite":"Zweischicht gleiche Weite","Korbwicklung":"Sonstige"};
+function migrate(d){
+  if(!d||typeof d!=="object")return d;
+  if(ART_MAP[d.art])d.art=ART_MAP[d.art];
+  if(!Array.isArray(d.abst))d.abst=d.schablone?[String(d.schablone)]:[];
+  if(!Array.isArray(d.kammern))d.kammern=d.backenKa?[String(d.backenKa)]:[];
+  if(d.nutiso&&!d.nutisoL)d.nutisoL=d.nutiso;
+  if(d.zwischendach&&!d.zwdL)d.zwdL=d.zwischendach;
+  return d;
+}
+const isoTxt=(d,p)=>[d[p+"L"]&&"L "+d[p+"L"],d[p+"B"]&&"B "+d[p+"B"],d[p+"F"]&&"Falz "+d[p+"F"]].filter(Boolean).join(" · ");
+const thTxt=(d,p)=>[d[p+"Typ"],d[p+"Anz"]&&d[p+"Anz"]+" Stk.",d[p+"Temp"]&&d[p+"Temp"]+" °C"].filter(Boolean).join(" · ");
 const EIN=["datum","kunde","sn","bem"];
 /* Drahttabelle: Abmessung von Drähten bei Verwendung mehrerer Parallelleiter – [1 Draht, 2 Drähte, 3 Drähte, Querschnitt mm²] */
 const DRAHT_TAB=[["0,20","0,14","0,11–0,12","0,031"],["0,212","0,15","0,12","0,035"],["0,224","0,16","0,13","0,039"],["0,236","0,16–0,17","0,13–0,14","0,044"],
@@ -434,6 +515,103 @@ function einRow(e={}){
 function readEin(){return [...document.querySelectorAll("#einList .ein-row")].map(r=>{const o={};r.querySelectorAll("input").forEach(i=>o[i.dataset.k]=i.value.trim());return o}).filter(o=>["kunde","sn","bem"].some(k=>o[k]))}
 $("#einAdd").onclick=()=>{const l=readEin().slice(-1)[0]||{};const r=einRow({datum:today(),kunde:l.kunde||"",sn:l.sn||""});r.querySelector('[data-k="kunde"]').focus()};
 
+
+/* ---------- einfache Wertelisten (Abstand Backen, Kammern) ---------- */
+function vlist(cont,addBtn,ph){
+  const box=$(cont);
+  const row=(v="")=>{const d=document.createElement("div");d.className="vrow";
+    d.innerHTML=`<input placeholder="${ph}" value="${esc(v)}"><button type="button" class="x" title="Entfernen">✕</button>`;
+    d.querySelector("button").onclick=()=>{d.remove();if(!box.querySelector(".vrow"))row()};box.appendChild(d);return d};
+  $(addBtn).onclick=()=>row().querySelector("input").focus();
+  return {fill(a){box.innerHTML="";(a&&a.length?a:[""]).forEach(row)},read(){return [...box.querySelectorAll("input")].map(i=>i.value.trim()).filter(Boolean)}};
+}
+const abstL=vlist("#abstList","#abstAdd","z. B. 8,6");
+const kamL=vlist("#kamList","#kamAdd","z. B. 4");
+
+/* ---------- Blockschaltbild ---------- */
+const STR=["U","V","W"];
+let bsb={n:0,conns:[],labels:{}},bsbSel=null,bsbArmed=-1,bsbArmT=0;
+function bsbNorm(x){const n=Math.max(0,Math.min(12,parseInt(x&&x.n)||0));
+  const ok=id=>{const m=/^([UVW])(\d+)([ae])$/.exec(id);return m&&+m[2]>=1&&+m[2]<=n};
+  return {n,conns:(x&&Array.isArray(x.conns)?x.conns:[]).filter(c=>Array.isArray(c)&&ok(c[0])&&ok(c[1])).map(c=>[c[0],c[1]]),
+    labels:Object.fromEntries(Object.entries((x&&x.labels)||{}).filter(([k,v])=>ok(k)&&v).map(([k,v])=>[k,String(v).slice(0,12)]))}}
+function bsbIn(x){bsb=bsbNorm(x||{});bsbSel=null;bsbArmed=-1;$("#bsbN").value=bsb.n||"";renderBsb()}
+function bsbOut(){return bsb.n?JSON.parse(JSON.stringify(bsb)):null}
+const termName=id=>{const m=/^([UVW])(\d+)([ae])$/.exec(id);return `${m[1]}-Spule ${m[2]} ${m[3]==="a"?"Anfang":"Ende"}`};
+const termShort=(b,id)=>{const m=/^([UVW])(\d+)([ae])$/.exec(id);return `${m[1]}${m[2]}${m[3]==="a"?"A":"E"}`+(b.labels[id]?` (${b.labels[id]})`:"")};
+function bsbTxt(b){if(!b||!b.n)return "";b=bsbNorm(b);
+  const c=b.conns.map(([x,y])=>termShort(b,x)+"–"+termShort(b,y));
+  const free=Object.entries(b.labels).filter(([k])=>!b.conns.some(c=>c.includes(k))).map(([k])=>termShort(b,k));
+  return `${b.n} Spulen je Strang`+(c.length?"; Verbindungen: "+c.join(", "):"")+(free.length?"; Anschlüsse: "+free.join(", "):"")}
+function bsbGeo(n){const cw=74,ch=58,gap=46,ml=46,mt=18,rh=178;return {cw,ch,gap,ml,mt,rh,W:ml+n*(cw+gap)+70,H:mt+3*rh}}
+function termPos(g,id){const m=/^([UVW])(\d+)([ae])$/.exec(id),r=STR.indexOf(m[1]),i=+m[2]-1;
+  const x0=g.ml+i*(g.cw+g.gap),y0=g.mt+r*g.rh;return {x:m[3]==="a"?x0+12:x0+g.cw-12,y:y0+g.ch+30,row:r}}
+function bsbSVG(b,opt={}){
+  b=bsbNorm(b);if(!b.n)return "";const g=bsbGeo(b.n);let o="";
+  if(opt.static)o+=`<style>.coil{fill:#fff;stroke:#000;stroke-width:2}.inner{stroke:#777;stroke-width:1.5;fill:none}.lead{stroke:#000;stroke-width:2}.term{fill:#fff;stroke:#000;stroke-width:2}.term.used{fill:#000}.conn{fill:none;stroke:#b8581a;stroke-width:3}text{font-family:monospace;fill:#000}.strand{font:700 18px Arial}.lbl{font-size:13px;font-weight:600}.cnum{font-size:11px;fill:#777}</style>`;
+  STR.forEach((S,r)=>{const y0=g.mt+r*g.rh;
+    o+=`<text class="strand" x="12" y="${y0+36}">${S}</text>`;
+    for(let i=0;i<b.n;i++){const x0=g.ml+i*(g.cw+g.gap);
+      o+=`<rect class="coil" x="${x0}" y="${y0}" width="${g.cw}" height="${g.ch}" rx="3"/>`+
+         `<path class="inner" d="M${x0+14} ${y0+g.ch} V${y0+14} H${x0+g.cw-14} V${y0+g.ch}"/>`+
+         `<text class="cnum" x="${x0+g.cw/2}" y="${y0+g.ch-6}" text-anchor="middle">${i+1}</text>`;
+      ["a","e"].forEach(k=>{const id=S+(i+1)+k,p=termPos(g,id);
+        o+=`<line class="lead" x1="${p.x}" y1="${y0+g.ch}" x2="${p.x}" y2="${p.y}"/>`;});
+    }});
+  /* Verbindungen */
+  const laneCnt={};
+  b.conns.forEach(([x,y],k)=>{const p=termPos(g,x),q=termPos(g,y);let d;
+    const lane=r=>{laneCnt[r]=(laneCnt[r]||0)+1;return g.mt+r*g.rh+g.ch+52+((laneCnt[r]-1)%5)*11};
+    if(p.row===q.row){const L=lane(p.row);d=`M${p.x} ${p.y} V${L} H${q.x} V${q.y}`}
+    else{const L1=lane(p.row),L2=lane(q.row),xg=g.W-18-(k%6)*8;d=`M${p.x} ${p.y} V${L1} H${xg} V${L2} H${q.x} V${q.y}`}
+    o+=`<path class="conn${k===opt.armed?" armed":""}" d="${d}"/>`;
+    if(!opt.static)o+=`<path class="connhit" data-c="${k}" d="${d}"/>`;
+  });
+  /* Anschlüsse + Beschriftung */
+  const used=new Set(b.conns.flat());
+  STR.forEach(S=>{for(let i=1;i<=b.n;i++)["a","e"].forEach(k=>{const id=S+i+k,p=termPos(g,id);
+    o+=`<circle class="term${used.has(id)?" used":""}${id===opt.sel?" sel":""}" cx="${p.x}" cy="${p.y}" r="8"/>`;
+    if(b.labels[id])o+=`<text class="lbl" x="${p.x}" y="${p.y+(k==="a"?-14:-14)}" text-anchor="${k==="a"?"end":"start"}" dx="${k==="a"?-6:6}">${esc(b.labels[id])}</text>`;
+    if(!opt.static)o+=`<circle class="hit" data-t="${id}" cx="${p.x}" cy="${p.y}" r="20"/>`;
+  })});
+  return opt.static?`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${g.W} ${g.H}" width="100%" style="max-width:${g.W}px">${o}</svg>`:o;
+}
+function renderBsb(){
+  const svg=$("#bsb"),tools=$("#bsbTools");
+  if(!bsb.n){svg.setAttribute("width",0);svg.setAttribute("height",0);svg.innerHTML="";tools.classList.add("hidden");$("#bsbHint").textContent="Anzahl Spulen je Strang eingeben, dann Enden antippen und verbinden.";return}
+  $("#bsbHint").textContent="Ende antippen → zweites Ende antippen = verbinden. Verbindung 2× antippen = löschen.";
+  const g=bsbGeo(bsb.n);svg.setAttribute("viewBox",`0 0 ${g.W} ${g.H}`);svg.setAttribute("width",g.W);svg.setAttribute("height",g.H);
+  svg.innerHTML=bsbSVG(bsb,{sel:bsbSel,armed:bsbArmed});
+  svg.querySelectorAll(".hit").forEach(h=>h.onclick=()=>bsbTap(h.dataset.t));
+  svg.querySelectorAll(".connhit").forEach(h=>h.onclick=()=>{const k=+h.dataset.c;
+    if(bsbArmed===k&&Date.now()-bsbArmT<4000){bsb.conns.splice(k,1);bsbArmed=-1;toast("Verbindung gelöscht")}else{bsbArmed=k;bsbArmT=Date.now();toast("Nochmal antippen zum Löschen")}
+    renderBsb()});
+  /* Werkzeugleiste */
+  if(!bsbSel){tools.classList.add("hidden");return}
+  tools.classList.remove("hidden");
+  const quick=["U1","U2","V1","V2","W1","W2","Stern"];
+  tools.innerHTML=`<b>${termName(bsbSel)}</b> beschriften: ${quick.map(q=>`<button type="button" data-l="${q}">${q}</button>`).join("")}
+    <input id="bsbLbl" placeholder="eigener Text" maxlength="12" value="${esc(bsb.labels[bsbSel]||"")}"><button type="button" id="bsbLblOk">OK</button>
+    <button type="button" id="bsbLblDel">Beschriftung löschen</button><button type="button" id="bsbCancel">Fertig</button>`;
+  const setL=v=>{if(v)bsb.labels[bsbSel]=v.slice(0,12);else delete bsb.labels[bsbSel];renderBsb()};
+  tools.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>setL(b.dataset.l));
+  $("#bsbLblOk").onclick=()=>setL($("#bsbLbl").value.trim());
+  $("#bsbLbl").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();setL(e.target.value.trim())}};
+  $("#bsbLblDel").onclick=()=>setL("");
+  $("#bsbCancel").onclick=()=>{bsbSel=null;renderBsb()};
+}
+function bsbTap(id){
+  bsbArmed=-1;
+  if(!bsbSel){bsbSel=id}
+  else if(bsbSel===id){bsbSel=null}
+  else{
+    if(!bsb.conns.some(c=>c.includes(bsbSel)&&c.includes(id)))bsb.conns.push([bsbSel,id]);
+    bsbSel=null;
+  }
+  renderBsb();
+}
+$("#bsbN").addEventListener("input",e=>{bsb=bsbNorm({...bsb,n:e.target.value});bsbSel=null;renderBsb()});
+
 /* ---------- Windungen ---------- */
 function wdgRow(x={}){
   const d=document.createElement("div");d.className="wrow";
@@ -510,12 +688,12 @@ $("#drahtSplit").onclick=()=>{const b=$("#splitBox");b.classList.toggle("hidden"
 /* ---------- form io ---------- */
 function readForm(){
   const r={};FIELDS.forEach(k=>{const el=frm.elements[k];r[k]=el?el.value.trim():""});
-  r.einsaetze=readEin();r.drahte=readDraht();r.wdgs=readWdg();
+  r.einsaetze=readEin();r.drahte=readDraht();r.wdgs=readWdg();r.abst=abstL.read();r.kammern=kamL.read();r.bsb=bsbOut();
   return r;
 }
 function fillForm(r){
   FIELDS.forEach(k=>{const el=frm.elements[k];if(el)el.value=r[k]??""});
-  fillDraht(drahte(r));fillWdg(wdgs(r));$("#splitBox").classList.add("hidden");
+  migrate(r);fillDraht(drahte(r));fillWdg(wdgs(r));abstL.fill(r.abst||[]);kamL.fill(r.kammern||[]);bsbIn(r.bsb);$("#splitBox").classList.add("hidden");
   $("#einList").innerHTML="";const e=einsaetze(r);(e.length?e:[{datum:today()}]).forEach(einRow);
   $("#meta").textContent=r.updatedAt?("zuletzt "+new Date(r.updatedAt).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})):"neu";
   renderCalc();
@@ -536,7 +714,7 @@ const normS=x=>String(x??"").toLowerCase().replace(/(\d)\.(\d)/g,"$1,$2");
 function searchTokens(q){
   return normS(q).replace(/(\d)\s+(kw|ps|nuten|nut|upm|u\/min|u)\b/g,"$1$2").split(/\s+/).filter(Boolean);
 }
-function hay(d){return normS([...FIELDS.map(k=>d[k]),drahtTxt(drahte(d)),wdgTxt(wdgs(d)),...einsaetze(d).map(e=>EIN.map(k=>e[k]).join(" "))].join(" | "))}
+function hay(d){return normS([...FIELDS.map(k=>d[k]),val(d,"abst"),val(d,"kammern"),drahtTxt(drahte(d)),wdgTxt(wdgs(d)),...einsaetze(d).map(e=>EIN.map(k=>e[k]).join(" "))].join(" | "))}
 function matchAll(d,toks){
   const h=hay(d);
   return toks.every(t=>{
@@ -575,7 +753,7 @@ $("#btnSettings").onclick=()=>{if(current&&current.isNew)deleteFilesOf(current.i
 $("#btnSetBack").onclick=()=>{$("#viewSettings").classList.add("hidden");showList()};
 
 /* ---------- storage ---------- */
-function lsLoad(){try{return JSON.parse(localStorage.getItem(LS)||"[]")}catch(e){return []}}
+function lsLoad(){try{return JSON.parse(localStorage.getItem(LS)||"[]").map(r=>(migrate(r.data),r))}catch(e){return []}}
 function lsSave(){localStorage.setItem(LS,JSON.stringify(records))}
 async function saveRecord(id,data,keepTime){
   if(!keepTime||!data.updatedAt)data.updatedAt=Date.now();
@@ -615,6 +793,7 @@ $("#btnSave").onclick=async()=>{
   catch(e){toast(e&&e.name==="QuotaExceededError"?"Gerätespeicher voll – Sicherung machen und melden":"Fehler beim Speichern: "+(e&&e.message||e))}
   $("#btnSave").disabled=!canWrite;
 };
+$("#fabSave").onclick=()=>$("#btnSave").click();
 $("#btnDel").onclick=async()=>{if(await requirePin("Motor löschen"))$("#delConfirm").classList.add("show")};
 $("#delNo").onclick=()=>$("#delConfirm").classList.remove("show");
 $("#delYes").onclick=async()=>{try{await deleteRecord(current.id);toast("Gelöscht");showList()}catch(e){toast("Löschen fehlgeschlagen")}};
@@ -786,11 +965,17 @@ function download(filename,data,mime){
 }
 const offer=(f,d,m)=>{download(f,d,m);toast("Im Download-Ordner abgelegt")};
 const einTxt=e=>[e.datum,e.kunde,e.sn&&"SN "+e.sn,e.bem].filter(Boolean).join(", ");
-const val=(d,k)=>k==="drahte"?drahtTxt(drahte(d)):k==="wdgs"?wdgTxt(wdgs(d)):(d[k]??"");
+const val=(d,k)=>{switch(k){
+  case "drahte":return drahtTxt(drahte(d));case "wdgs":return wdgTxt(wdgs(d));
+  case "abst":case "kammern":return (d[k]||[]).filter(Boolean).join(" / ");
+  case "nutiso":return isoTxt(d,"nutiso");case "zwd":return isoTxt(d,"zwd");
+  case "tk":return thTxt(d,"tk");case "tf":return thTxt(d,"tf");
+  case "bsb":return bsbTxt(d.bsb);
+  default:return d[k]??""}};
 function csvCell(v){v=String(v??"");return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 $("#btnCsv").onclick=()=>{
-  const head=[...FIELDS.map(k=>LABELS[k]),"Draht","Einsätze"];
-  const rows=records.map(r=>[...FIELDS.map(k=>r.data[k]),drahtTxt(drahte(r.data)),einsaetze(r.data).map(einTxt).join(" | ")]);
+  const head=[...FIELDS.map(k=>LABELS[k]),"Windungen","Draht","Abstand Backen","Backen Kammern","Blockschaltbild","Einsätze"];
+  const rows=records.map(r=>[...FIELDS.map(k=>r.data[k]),val(r.data,"wdgs"),drahtTxt(drahte(r.data)),val(r.data,"abst"),val(r.data,"kammern"),val(r.data,"bsb"),einsaetze(r.data).map(einTxt).join(" | ")]);
   offer("wickeldaten.csv","﻿"+[head,...rows].map(r=>r.map(csvCell).join(";")).join("\r\n"),"text/csv");
 };
 $("#btnJson").onclick=()=>backupNow(false);$("#btnBackup").onclick=()=>backupNow(false);
@@ -804,6 +989,8 @@ $("#fileImp").onchange=async e=>{
       d.einsaetze=einsaetze(r.data).map(x=>{const o={};EIN.forEach(k=>o[k]=String(x[k]||""));return o});
       d.drahte=drahte(r.data).map(x=>({n:String(x.n||""),d:String(x.d||"")}));
       d.wdgs=wdgs(r.data).map(x=>({w:String(x.w||""),bem:String(x.bem||"")}));
+      migrate(r.data);d.abst=(r.data.abst||[]).map(String);d.kammern=(r.data.kammern||[]).map(String);
+      if(r.data.bsb&&typeof r.data.bsb==="object")d.bsb=JSON.parse(JSON.stringify(r.data.bsb));if(ART_MAP[d.art])d.art=ART_MAP[d.art];
       if(r.data.updatedAt)d.updatedAt=+r.data.updatedAt||0;
       const id=String(r.id||newId());const i=records.findIndex(x=>x.id===id);if(i>=0)records[i]={id,data:d};else records.push({id,data:d});n++}}
     lsSave();setMeta({dirty:0});updateStatus();renderList();toast(n+" Motoren geladen");
@@ -818,6 +1005,7 @@ function sheetText(d){
   const e=d.einsaetze||[];
   return [`WICKELDATEN – ${d.hersteller||""} ${d.typ||""}`.trim(),
     e.length?"== Einsätze ==\n"+e.map(einTxt).join("\n"):null,
+    bsbTxt(d.bsb)?"== Blockschaltbild ==\n"+bsbTxt(d.bsb):null,
     ...SECTIONS.map(([t,ks])=>g(t,ks)),
     `== Berechnet ==\n${isNaN(c.poles)?"":c.poles+"-polig, "}q=${fmt(c.q)}, A=${fmt(c.A,3)} mm², J=${fmt(c.J)} A/mm²`,
     d.notizen?"Zusatzbemerkungen: "+d.notizen:null].filter(Boolean).join("\n\n");
@@ -835,7 +1023,7 @@ table{border-collapse:collapse;width:100%}th,td{border:1px solid #bbb;padding:3p
 <div class="cols">
 ${SECTIONS.map(([t,ks])=>`<div>${sec(t,ks)}</div>`).join("")}
 <div><h2>Berechnet</h2><table><tr><th>Polzahl</th><td>${isNaN(c.poles)?"–":c.poles}</td></tr><tr><th>q</th><td>${fmt(c.q)}</td></tr><tr><th>Leiterquerschnitt</th><td>${fmt(c.A,3)} mm²</td></tr><tr><th>Stromdichte</th><td>${fmt(c.J)} A/mm²</td></tr></table></div>
-</div>${ein}
+</div>${d.bsb&&d.bsb.n?`<h2>Blockschaltbild</h2><div style="overflow:hidden">${bsbSVG(d.bsb,{static:true})}</div><p style="font-size:10pt">${esc(bsbTxt(d.bsb))}</p>`:""}${ein}
 ${d.notizen?`<h2>Zusatzbemerkungen</h2><p>${esc(d.notizen).replace(/\n/g,"<br>")}</p>`:""}
 <p style="font-size:9pt;color:#666;margin-top:14px">Erstellt ${today()}</p></body></html>`;
   offer(("wickeldaten_"+(d.hersteller+"_"+d.typ).replace(/[^\w\-]+/g,"_")+".html").replace(/_+/g,"_"),html,"text/html");
@@ -848,27 +1036,24 @@ let _t="hell";try{_t=localStorage.getItem("wickeldaten.theme")||"hell"}catch(e){
 $("#btnTheme").onclick=()=>{const i=THEMES.findIndex(x=>x[0]===document.documentElement.dataset.theme);applyTheme(THEMES[(i+1)%3][0])};
 
 /* ---------- Schriftgröße & Akzentfarbe ---------- */
-const DEF_ACC="#b8581a";
-const PRESETS=["#b8581a","#1f6fb2","#2f7a4a","#b23a3a","#7a3fb0","#0f8a8a","#c79100","#4a5560"];
+const PRESETS=[["std","Standard (Kupfer)"],["#3a8fd6","Blau"],["#3a9a5b","Grün"],["#e05a52","Rot"],["#a578e0","Violett"],["#17a19e","Türkis"],["#de5a95","Pink"],["#c09015","Gold"]];
 function lum(hex){const n=parseInt(hex.slice(1),16),c=[n>>16&255,n>>8&255,n&255].map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]}
-function applyAccent(hex){
+function applyAccent(c){
   const r=document.documentElement;
-  if(!/^#[0-9a-f]{6}$/i.test(hex||""))hex=DEF_ACC;
-  if(hex.toLowerCase()===DEF_ACC){r.classList.remove("custom-acc");r.style.removeProperty("--acc");r.style.removeProperty("--onacc")}
-  else{r.classList.add("custom-acc");r.style.setProperty("--acc",hex);r.style.setProperty("--onacc",lum(hex)>0.45?"#111":"#fff")}
-  const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=hex;
-  try{localStorage.setItem("wickeldaten.acc",hex)}catch(e){}
-  $("#accPick").value=hex;
-  document.querySelectorAll(".sw").forEach(b=>b.classList.toggle("on",b.dataset.c.toLowerCase()===hex.toLowerCase()));
+  if(!PRESETS.some(p=>p[0]===c))c="std";
+  if(c==="std"){r.classList.remove("custom-acc");r.style.removeProperty("--acc");r.style.removeProperty("--onacc")}
+  else{const L=lum(c),cw=1.05/(L+.05),cb=(L+.05)/(lum("#111111")+.05);
+    r.classList.add("custom-acc");r.style.setProperty("--acc",c);r.style.setProperty("--onacc",cb>cw?"#111":"#fff")}
+  const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=c==="std"?"#b8581a":c;
+  try{localStorage.setItem("wickeldaten.acc",c)}catch(e){}
+  document.querySelectorAll(".sw").forEach(b=>b.classList.toggle("on",b.dataset.c===c));
 }
-$("#swatches").innerHTML=PRESETS.map(c=>`<button type="button" class="sw" data-c="${c}" style="background:${c}" title="${c}"></button>`).join("");
+$("#swatches").innerHTML=PRESETS.map(([c,n])=>`<button type="button" class="sw" data-c="${c}" style="background:${c==="std"?"#c8641f":c}" title="${n}"></button>`).join("");
 document.querySelectorAll(".sw").forEach(b=>b.onclick=()=>applyAccent(b.dataset.c));
-$("#accPick").addEventListener("input",e=>applyAccent(e.target.value));
-$("#accReset").onclick=()=>applyAccent(DEF_ACC);
 function applySize(sz){if(!["normal","gross","sehrgross"].includes(sz))sz="gross";document.documentElement.dataset.size=sz;
   document.querySelectorAll("#sizeSeg button").forEach(b=>b.classList.toggle("on",b.dataset.s===sz));try{localStorage.setItem("wickeldaten.size",sz)}catch(e){}}
 document.querySelectorAll("#sizeSeg button").forEach(b=>b.onclick=()=>applySize(b.dataset.s));
-let _acc=DEF_ACC,_sz="gross";try{_acc=localStorage.getItem("wickeldaten.acc")||DEF_ACC;_sz=localStorage.getItem("wickeldaten.size")||"gross"}catch(e){}
+let _acc="std",_sz="gross";try{_acc=localStorage.getItem("wickeldaten.acc")||"std";_sz=localStorage.getItem("wickeldaten.size")||"gross"}catch(e){}
 applyAccent(_acc);applySize(_sz);
 
 /* ---------- init ---------- */
